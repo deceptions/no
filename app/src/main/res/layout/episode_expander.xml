@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/episode_result_root"
+        android:layout_marginBottom="5dp"
+>
+<!--        android:descendantFocusability="afterDescendants"-->
+    <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+    >
+        <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                android:id="@+id/card_outline"
+        >
+
+            <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_margin="2dp"
+                    android:elevation="10dp"
+                    android:id="@+id/card_bg"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardBackgroundColor="?attr/backgroundColorLight"
+            >
+                <RelativeLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+
+                >
+                    <TextView
+                            android:id="@+id/cardTitle"
+                            android:layout_margin="10dp"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:textSize="15sp"
+                            android:textColor="?attr/textColor"
+                            tools:text="Episodes 1-50"
+                            android:gravity="center"
+                            android:layout_centerVertical="true"
+                            android:layout_alignParentStart="true"
+                            android:layout_alignEnd="@+id/expand_icon"
+                    >
+                    </TextView>
+                    <ImageView
+                            android:layout_alignParentEnd="true"
+                            android:id="@+id/expand_icon"
+                            android:layout_marginEnd="10dp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            app:srcCompat="@drawable/ic_baseline_keyboard_arrow_right_24"
+                    >
+                    </ImageView>
+                </RelativeLayout>
+            </androidx.cardview.widget.CardView>
+        </androidx.cardview.widget.CardView>
+        <com.lagradost.shiro.ui.AutofitRecyclerView
+                app:layout_behavior="@string/appbar_scrolling_view_behavior"
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:visibility="gone"
+                tools:visibility="visible"
+                android:nestedScrollingEnabled="false"
+                android:clipToPadding="false"
+                android:descendantFocusability="afterDescendants"
+                android:layout_marginTop="10dp"
+                android:layout_marginBottom="10dp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/episodes_res_view"
+                android:orientation="vertical"
+                app:spanCount="1"
+                tools:listitem="@layout/episode_result_compact"
+        >
+
+        </com.lagradost.shiro.ui.AutofitRecyclerView>
+    </LinearLayout>
+
+
+</LinearLayout>

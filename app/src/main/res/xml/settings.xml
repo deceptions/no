@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+    <PreferenceCategory/>
+
+    <Preference
+            app:icon="@drawable/ic_baseline_tune_24"
+            app:key="settings_general"
+            android:title="General"
+    />
+    <Preference
+            app:icon="@drawable/ic_baseline_color_lens_24"
+            app:key="settings_style"
+            android:title="Appearance"
+    />
+    <Preference
+            app:icon="@drawable/ic_baseline_ondemand_video_24"
+            app:key="settings_player"
+            android:title="Player"
+    />
+    <Preference
+            app:icon="@drawable/ic_baseline_perm_identity_24"
+            app:key="settings_accounts"
+            android:title="Accounts"
+    />
+    <Preference
+            app:icon="@drawable/ic_baseline_history_24"
+            app:key="settings_history"
+            android:title="History"
+    />
+    <Preference
+            app:icon="@drawable/ic_baseline_system_update_24"
+            app:key="settings_update"
+            android:title="Update info"
+    />
+    <Preference
+            app:icon="@drawable/ic_baseline_info_24"
+            app:key="settings_info"
+            android:title="About"
+    />
+</PreferenceScreen>

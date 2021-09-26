@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:id="@+id/view_root"
+>
+    <TextView
+            android:focusable="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="@string/favorites"
+            android:textStyle="bold"
+            android:textColor="?attr/textColor"
+            android:padding="10dp"
+            android:id="@+id/expand_text"
+            app:drawableEndCompat="@drawable/ic_baseline_keyboard_arrow_right_24"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+            style="@style/HomeCategoriesText"
+    >
+    </TextView>
+    <RelativeLayout
+            android:layout_width="wrap_content"
+            android:layout_height="230dp"
+            android:layout_marginBottom="20dp"
+    >
+        <androidx.leanback.widget.HorizontalGridView
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:id="@+id/horizontalGridView"
+                tools:listitem="@layout/home_card"
+                android:orientation="horizontal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/HomeCategoriesResView"
+        >
+        </androidx.leanback.widget.HorizontalGridView>
+    </RelativeLayout>
+</LinearLayout>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto" xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/tv_navigation"
+            app:startDestination="@+id/navigation_home_tv"
+>
+    <action android:id="@+id/global_to_navigation_player_tv"
+            app:destination="@id/navigation_player_tv"/>
+    <action android:id="@+id/global_to_navigation_search_tv"
+            app:destination="@id/navigation_search_tv"
+            app:popEnterAnim="@anim/slide_in_left"
+            app:popExitAnim="@anim/slide_out_right"
+            app:enterAnim="@anim/slide_in_right"
+            app:exitAnim="@anim/slide_out_left"
+    />
+    <action android:id="@+id/global_to_navigation_library_tv"
+            app:destination="@id/navigation_library_tv"
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/exit"
+            app:popEnterAnim="@anim/enter"
+            app:popExitAnim="@anim/exit"
+    />
+    <action android:id="@+id/global_to_navigation_settings_tv"
+            app:destination="@id/navigation_settings_tv"
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/exit"
+            app:popEnterAnim="@anim/enter"
+            app:popExitAnim="@anim/exit"
+    />
+    <action android:id="@+id/global_to_navigation_results_tv"
+            app:destination="@id/navigation_results_tv"
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/exit"
+            app:popEnterAnim="@anim/enter"
+            app:popExitAnim="@anim/exit"
+    >
+        <argument
+                android:name="slug"
+                app:argType="string"/>
+        <argument
+                android:name="name"
+                app:argType="string"
+        />
+        <argument
+                android:name="isMalId"
+                app:argType="boolean"
+                android:defaultValue="false"
+        />
+    </action>
+    <fragment
+            android:id="@+id/navigation_home_tv"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.tv.MainFragment"
+            android:label="Home"
+            tools:layout="@layout/fragment_main_tv"
+
+    >
+        <action
+                android:id="@+id/action_navigation_home_to_navigation_expanded_home"
+                app:destination="@id/navigation_expanded_home"
+                app:popEnterAnim="@anim/slide_in_left"
+                app:popExitAnim="@anim/slide_out_right"
+                app:enterAnim="@anim/slide_in_right"
+                app:exitAnim="@anim/slide_out_left"
+        >
+            <argument
+                    android:name="card_list"
+                    app:argType="string"/>
+            <argument
+                    android:name="title"
+                    app:argType="string"
+            />
+        </action>
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_search_tv"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.tv.SearchFragmentTv"
+            android:label="Search"
+            tools:layout="@layout/fragment_search_tv"
+    >
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_player_tv"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.tv.PlayerFragmentTv"
+            android:label="Player"
+            tools:layout="@layout/exo_styled_player_view"
+    >
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_library_tv"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.library.LibraryFragment"
+            android:label="Library"
+            tools:layout="@layout/fragment_library"
+    >
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_settings_tv"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.settings.SettingsFragmentNew"
+            android:label="@string/title_settings"
+            tools:layout="@layout/fragment_settings"
+
+    />
+    <fragment
+            android:id="@+id/navigation_expanded_home"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.home.ExpandedHomeFragment"
+            tools:layout="@layout/fragment_expanded_home"
+    >
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_results_tv"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.result.ResultFragment"
+            android:label="Results"
+            tools:layout="@layout/fragment_results"
+
+    >
+    </fragment>
+</navigation>

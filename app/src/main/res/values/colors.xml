@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="white">#FFF</color>
+    <color name="whiteSettings">#FFF</color>
+    <color name="grayBackground">#333333</color>
+    <color name="grayItem">#21201e</color>
+    <color name="grayForeground">#b3b3b3</color>
+    <color name="transparent">#00000000</color>
+    <color name="black_overlay">#66000000</color>
+    <color name="black_overlay_darker">#CC000000</color>
+    <color name="video_ripple">#80FFFFFF</color>
+
+    <color name="colorPrimary">#d01110</color>
+    <color name="colorPrimaryDark">#b00d0c</color>
+    <color name="colorPrimaryDarker">#6A0908</color>
+    <color name="colorPrimaryMegaDark">#210303</color>
+    <color name="colorAccent">#ed2c2b</color>
+
+    <!-- Default theme -->
+    <color name="textColor">#e6e6e6</color>
+    <color name="textColorGray">#989898</color>
+    <color name="textColorGrayWhite">#bababa</color>
+    <color name="darkBar">#121212</color>
+    <color name="darkBarLight">#303030</color>
+    <color name="darkBarTransparent">#C0121212</color>
+    <color name="backgroundLight">#232323</color>
+    <color name="background">#050505</color>
+
+    <!-- Light theme -->
+    <color name="lightTextColor">#191919</color>
+    <color name="lightTextColorGray">#4F4F4F</color>
+    <color name="lightTextColorGrayWhite">#454545</color>
+    <color name="lightDarkBar">#EDEDED</color>
+    <color name="lightDarkBarLight">#CFCFCF</color>
+    <color name="lightDarkBarTransparent">#BFEDEDED</color>
+    <color name="lightBackgroundLight">#DFDFDF</color>
+    <color name="lightBackground">#FAFAFA</color>
+    <color name="lightVideo_ripple">#80000000</color>
+
+    <!-- Dark theme -->
+    <color name="darkDarkBar">#222222</color>
+    <color name="darkDarkBarLight">#292929</color>
+    <color name="darkDarkBarTransparent">#BF272727</color>
+    <color name="darkBackgroundLight">#262626</color>
+    <color name="darkBackground">#1C1C1C</color>
+
+    <color name="CdarkBar">#1E1E1E</color>
+    <color name="CdarkBarLight">#252525</color>
+    <color name="CdarkBarTransparent">#BF232323</color>
+    <color name="CbackgroundLight">#222222</color>
+    <color name="Cbackground">#181818</color>
+
+    <color name="AdarkBar">#1A1A1A</color>
+    <color name="AdarkBarLight">#242424</color>
+    <color name="AdarkBarTransparent">#BF242424</color>
+    <color name="AbackgroundLight">#262626</color>
+    <color name="Abackground">#141414</color>
+
+    <color name="BdarkBar">#171717</color>
+    <color name="BdarkBarLight">#212121</color>
+    <color name="BdarkBarTransparent">#BF212121</color>
+    <color name="BbackgroundLight">#232323</color>
+    <color name="Bbackground">#111111</color>
+
+    <!-- ColorPrimary are needed to be defined here or else leanback will crash in player, see playbackProgressPrimaryColor -->
+    <color name="colorPrimaryBlue">#5664B7</color>
+    <color name="colorPrimaryPurple">#6200EA</color>
+    <color name="colorPrimaryGreen">#00BFA5</color>
+    <color name="colorPrimaryGreenApple">#48E484</color>
+    <color name="colorPrimaryPink">#E02A6B</color>
+    <color name="colorPrimaryOrange">#FF6D00</color>
+    <color name="colorPrimaryLime">#AEEA00</color>
+    <color name="colorPrimaryYellow">#FFD900</color>
+    <color name="colorPrimaryLightBlue">#42CEF5</color>
+    <!--<color name="colorPrimaryLightBlue">#BD5353</color>-->
+
+    <!--
+    Not white! Very strange bug on older versions
+    it sets all other colors to the themed colorPrimary if it's the same initial value
+    -->
+    <color name="cyanea_primary_reference">#FEFEFE</color>
+    <color name="cyanea_accent_reference">#FEFEFE</color>
+
+    <!-- MAL -->
+    <color name="colorWatching">#00C853</color>
+    <color name="colorCompleted">#304FFE</color>
+    <color name="colorOnHold">#FFAB00</color>
+    <color name="colorDropped">#D50000</color>
+    <color name="colorPlanToWatch">#596364</color>
+
+</resources>

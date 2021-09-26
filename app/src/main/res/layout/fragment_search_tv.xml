@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
+              tools:context=".ui.tv.SearchFragmentTv"
+              android:orientation="vertical"
+              android:background="?attr/backgroundColor"
+>
+    <androidx.leanback.widget.SearchBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/search_bar"
+            android:layout_marginTop="10dp"
+    >
+    </androidx.leanback.widget.SearchBar>
+
+    <TextView
+            android:focusable="false"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            tools:text="@string/favorites"
+            android:textStyle="bold"
+            android:textColor="?attr/textColor"
+            android:textSize="16sp"
+            android:padding="10dp"
+            android:id="@+id/expand_text"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="10dp"
+    >
+    </TextView>
+    <androidx.leanback.widget.HorizontalGridView
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tools:listitem="@layout/home_card"
+            android:id="@+id/search_recycler"
+            android:layout_margin="10dp"
+    />
+
+</LinearLayout>

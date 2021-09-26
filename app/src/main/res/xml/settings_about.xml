@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+    <Preference
+            android:icon="@drawable/ic_baseline_payment_24"
+            android:title="Donate to ********"
+            app:summary="To help fund the site"
+    >
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://ko-fi.com/shirois"/>
+
+    </Preference>
+    <Preference
+            android:icon="@drawable/ic_baseline_payment_24"
+            android:title="Donate to the App developers"
+            app:summary="If you have too much cash"
+            app:isPreferenceVisible="false"
+    >
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://ko-fi.com/lagradost"/>
+
+    </Preference>
+    <Preference
+            android:title="******** discord"
+            android:icon="@drawable/ic_baseline_discord_24"
+            app:summary="Join the Shiro community"
+    >
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://discord.gg/shiro"/>
+
+    </Preference>
+
+    <Preference
+            android:title="Light novel app by the same devs"
+            android:icon="@drawable/quick_novel_icon"
+            app:summary="https://github.com/LagradOst/QuickNovel">
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://github.com/LagradOst/QuickNovel"/>
+    </Preference>
+    <Preference
+            android:title="Anime and Movie app by the same devs"
+            android:icon="@drawable/cs3_cloud"
+            app:summary="https://github.com/LagradOst/CloudStream-3">
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://github.com/LagradOst/CloudStream-3"/>
+    </Preference>
+    <Preference
+            android:title="Developers (to complain to)"
+            android:icon="@drawable/ic_baseline_code_24"
+            app:summary="Lag#5744 &amp; Blue Fire#1471"
+    />
+
+</PreferenceScreen>

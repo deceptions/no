@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_picture_in_picture_alt_24"
+            app:key="pip_enabled"
+            android:title="Picture-in-picture"
+            app:isPreferenceVisible="false"
+            android:summary="Continues playback in a miniature player on top of other apps"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_ondemand_video_24"
+            app:key="swipe_enabled"
+            android:title="Swipe to seek"
+            android:summary="Swipe left or right to control time in the videoplayer"
+            app:defaultValue="true"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_ondemand_video_24"
+            app:key="swipe_vertical_enabled"
+            android:title="Swipe to change settings"
+            android:summary="Swipe on the left or right side to change brightness or volume"
+            app:defaultValue="true"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_touch_app_24"
+            app:key="double_tap_enabled"
+            android:title="Double tap to seek"
+            android:summary="Tap twice on the right or left side to seek forwards or backwards"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/netflix_skip_forward"
+            app:key="hide_player_ffwd"
+            android:title="Hide rewind and fast forward buttons"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_queue_play_next_24"
+            app:key="autoplay_enabled"
+            android:title="Autoplay next episode"
+            android:summary="Does not work if there's no player interaction during 3 episodes in a row"
+            app:defaultValue="true"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_skip_next_24"
+            app:key="skip_fillers"
+            android:title="Automatically skip fillers"
+            android:summary="Skips all filler episodes when pressing next episode. Does not apply to downloaded episodes"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_fullscreen_24"
+            app:key="fullscreen_notch"
+            android:title="Fullscreen the notch in player"
+            app:defaultValue="true"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_skip_previous_24"
+            app:key="hide_prev_episode_button"
+            android:title="Hide the previous episode button"
+            app:defaultValue="false"
+    />
+    <!--<SwitchPreference
+            android:icon="@drawable/ic_baseline_fast_forward_24"
+            app:key="skip_op_enabled"
+            android:title="Skip OP button"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_speed_24"
+            app:key="playback_speed_enabled"
+            android:title="Playback speed button"
+            android:summary="Your preferred playback speed will still be used with this disabled"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_aspect_ratio_24"
+            app:key="player_resize_enabled"
+            android:title="Player resize button"
+            android:summary="Cursed"
+            app:defaultValue="false"
+    />-->
+    <MultiSelectListPreference
+            app:key="selected_providers"
+            android:title="Link loading sources"
+            android:icon="@drawable/ic_baseline_playlist_play_24"
+            app:useSimpleSummaryProvider="true"
+            app:summary="Selecting none is the same as selecting all"
+    />
+    <!--    <SwitchPreference-->
+    <!--            android:icon="@drawable/ic_baseline_vpn_lock_24"-->
+    <!--            app:key="alternative_vidstream"-->
+    <!--            android:title="Use alternative Vidstream"-->
+    <!--            android:summaryOn="Some ISPs block vidstream\nUsing streamani.net"-->
+    <!--            android:summaryOff="Some ISPs block vidstream\nUsing gogo-stream.com"-->
+    <!--            app:defaultValue="false"-->
+    <!--    />-->
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_warning_24"
+            app:key="ignore_ssl"
+            android:title="Ignore SSL Certificate"
+            app:defaultValue="false"
+            app:summary="If you enable this more sources may work"
+    />
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_cloud_done_24"
+            android:title="Completed percentage"
+            android:summary="Percentage of video watched to sync as seen. 0 disables the feature"
+            android:defaultValue="80"
+            android:max="100"
+            android:key="completed_percentage"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="5"
+    >
+    </SeekBarPreference>
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_access_time_24"
+            android:title="Fast forward skip time"
+            app:summary="Also applies to PiP"
+            android:defaultValue="10"
+            android:key="fast_forward_button_time"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="5"
+    >
+    </SeekBarPreference>
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_access_time_24"
+            android:title="Double tap skip time"
+            android:defaultValue="10"
+            android:key="dobule_tap_time"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="5"
+    >
+    </SeekBarPreference>
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_access_time_24"
+            android:title="Chromecast skip time"
+            android:defaultValue="30"
+            android:key="chromecast_tap_time"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="5"
+    >
+    </SeekBarPreference>
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_screen_rotation_24"
+            app:key="allow_player_rotation"
+            android:title="Allow player rotation"
+            android:summary="Cursed"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_gradient_24"
+            app:key="disable_player_shadow"
+            android:title="Disable the player overlay shadow"
+            app:defaultValue="false"
+    />
+
+</PreferenceScreen>

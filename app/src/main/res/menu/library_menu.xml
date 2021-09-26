@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item android:id="@+id/action_search"
+          android:title="Search"
+          android:icon="@drawable/search_icon"
+          app:searchHintIcon="@drawable/search_icon"
+          app:showAsAction="collapseActionView|ifRoom"
+          app:actionViewClass="com.lagradost.shiro.ui.library.CustomSearchView"/>
+
+    <item android:id="@+id/action_reload"
+          android:icon="@drawable/quantum_ic_refresh_white_24"
+          app:showAsAction="collapseActionView|ifRoom"
+          android:title="Reload"/>
+
+    <item
+            android:id="@+id/action_sort"
+            android:icon="@drawable/ic_baseline_sort_24"
+            app:showAsAction="collapseActionView|ifRoom"
+            android:title="Sort"/>
+</menu>

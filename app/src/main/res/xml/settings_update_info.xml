@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+
+    <Preference
+            android:icon="@drawable/ic_baseline_build_24"
+            app:key="version"
+            app:title="Version"
+    />
+    <SwitchPreference
+            app:key="auto_update"
+            android:title="Show app update pop-up"
+            app:defaultValue="true"
+            android:icon="@drawable/ic_baseline_system_update_24"
+    />
+    <SwitchPreference
+            app:key="subscribe_to_updates"
+            android:title="Subscribe to update notifications"
+            app:defaultValue="false"
+            android:icon="@drawable/ic_baseline_notifications_active_24"
+    />
+
+    <SwitchPreference
+            app:key="beta_mode"
+            android:title="Beta channel"
+            android:summary="Try new and unstable updates first"
+            app:defaultValue="false"
+            android:icon="@drawable/ic_baseline_warning_24"
+    />
+    <Preference
+            android:title="Check for update"
+            android:icon="@drawable/rdload"
+            app:key="check_updates"
+    />
+    <Preference
+            android:title="Changelog"
+            app:key="changelog"
+            android:icon="@drawable/ic_baseline_notes_24"
+    />
+
+</PreferenceScreen>

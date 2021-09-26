@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:background="?attr/backgroundColor"
+>
+    <ProgressBar
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="center"
+            android:id="@+id/main_load"
+
+    >
+    </ProgressBar>
+
+    <Button android:text="@string/error_connecting_reload"
+            android:visibility="gone"
+            android:focusable="true"
+            android:clickable="true"
+            android:backgroundTint="?attr/textColor"
+            android:textColor="?attr/backgroundColor"
+            android:gravity="center"
+            android:layout_gravity="center"
+            android:id="@+id/main_reload_data_btt"
+            android:layout_width="wrap_content"
+            android:layout_height="50dp"
+    >
+    </Button>
+    <LinearLayout
+            android:visibility="visible"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/fragment_main_tv_root"
+    >
+        <!--<ImageView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:src="@drawable/background_svg"
+                android:scaleType="centerCrop"
+                app:tint="?attr/darkBar"
+        >
+        </ImageView>-->
+
+        <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:animateLayoutChanges="true"
+        >
+            <RelativeLayout
+                    android:layout_margin="15dp"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:clipChildren="false"
+                    android:visibility="gone"
+                    tools:visibility="visible"
+                    android:id="@+id/tv_menu_bar"
+            >
+                <!--
+                <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:src="@drawable/shiro_logo_rounded_color_primary"
+                        android:layout_centerVertical="true"
+                        android:id="@+id/shiro_logo"
+                >
+                </ImageView>
+                -->
+
+                <!--<com.google.android.material.button.MaterialButton
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textAllCaps="false"
+                        app:strokeWidth="2dp"
+                        android:minHeight="0dp"
+                        android:minWidth="0dp"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:text="Settings"
+                        app:strokeColor="?attr/textColor"
+                        android:textColor="?attr/textColor"
+                        android:id="@+id/settings_button"
+                        style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                        android:layout_centerVertical="true"
+                        android:layout_toStartOf="@+id/search_icon"
+                >
+
+                </com.google.android.material.button.MaterialButton>-->
+                <ImageView
+                        android:layout_centerVertical="true"
+                        android:layout_toLeftOf="@id/library_icon"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:scaleX="0.8"
+                        android:scaleY="0.8"
+                        app:srcCompat="@drawable/search_icon"
+                        android:id="@+id/search_icon"
+                        android:focusable="true"
+                        android:nextFocusUp="@null"
+                        android:nextFocusDown="@id/vertical_grid_view"
+                        android:clickable="true"
+                        android:focusableInTouchMode="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                >
+                    <requestFocus/>
+                </ImageView>
+                <ImageView
+                        android:layout_toLeftOf="@id/settings_icon"
+                        android:layout_centerVertical="true"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:scaleX="0.5"
+                        android:scaleY="0.5"
+                        app:srcCompat="@drawable/ic_baseline_collections_bookmark_24"
+                        android:id="@+id/library_icon"
+                        android:focusable="true"
+                        android:nextFocusDown="@id/vertical_grid_view"
+                        android:clickable="true"
+                        android:focusableInTouchMode="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        app:tint="?attr/white">
+                </ImageView>
+
+                <ImageView
+                        android:layout_alignParentEnd="true"
+                        android:layout_centerVertical="true"
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:scaleX="0.5"
+                        android:scaleY="0.5"
+                        android:src="@drawable/settings_white"
+                        android:id="@+id/settings_icon"
+                        android:focusable="true"
+                        android:nextFocusDown="@id/vertical_grid_view"
+                        android:clickable="true"
+                        android:focusableInTouchMode="true"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        app:tint="?attr/white"
+                >
+                </ImageView>
+
+
+            </RelativeLayout>
+            <androidx.leanback.widget.VerticalGridView
+                    android:visibility="gone"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:id="@+id/vertical_grid_view"
+                    tools:listitem="@layout/vertical_grid_view_child"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            />
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+</FrameLayout>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/res_resumedload"
+          android:title="@string/resume_download" />
+    <item android:id="@+id/res_stopdload"
+          android:title="@string/delete_file" />
+</menu>

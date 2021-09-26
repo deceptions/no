@@ -1,0 +1,224 @@
+apply plugin: 'com.android.application'
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-android-extensions'
+apply plugin: 'kotlin-kapt'
+apply plugin: 'com.google.gms.google-services'
+
+android {
+    compileSdkVersion 31
+    buildToolsVersion "30.0.3"
+    android.defaultConfig.vectorDrawables.useSupportLibrary = true
+
+    defaultConfig {
+        buildConfigField("boolean", "BETA", "false")
+        // Hack :)
+        buildConfigField("String", "BUILDDATE", "new java.text.SimpleDateFormat(\"yyyy-MM-dd HH:mm\").format(new java.util.Date(" + System.currentTimeMillis() + "L));")
+        buildConfigField("String", "ID", '"' + System.getenv("API_KEY") + '"')
+        //vectorDrawables.useSupportLibrary = true
+        applicationId "com.lagradost.shiro"
+        minSdkVersion 21
+        targetSdkVersion 31
+        // Don't forget to update versionCode too :)
+        versionCode 35
+        versionName "2.8.0"
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+
+        javaCompileOptions {
+            annotationProcessorOptions {
+                includeCompileClasspath = true
+            }
+        }
+
+        kapt {
+            correctErrorTypes = true
+        }
+
+        multiDexKeepFile file('multidex-config.txt')
+        multiDexEnabled true
+
+    }
+
+    signingConfigs {
+        release {
+            storeFile file("/home/bl/keep/fastani.jks")
+            keyAlias "LagradOst"
+            storePassword System.getenv("KSTOREPWD")
+            keyPassword System.getenv("KEYPWD")
+        }
+    }
+    flavorDimensions "version"
+    productFlavors {
+        phone {
+            dimension "version"
+        }
+        tv {
+            dimension "version"
+            applicationIdSuffix ".tv"
+        }
+    }
+    buildTypes {
+        release {
+            packagingOptions {
+                pickFirst 'kotlin/**'
+            }
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            buildConfigField("boolean", "BETA", "true")
+            applicationIdSuffix ".debug"
+            versionNameSuffix '-DEBUG'
+            debuggable true
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        beta {
+            buildConfigField("boolean", "BETA", "true")
+            productFlavors.tv.signingConfig signingConfigs.release
+            productFlavors.phone.signingConfig signingConfigs.release
+            versionNameSuffix '-Beta'
+            debuggable false
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        // https://github.com/FasterXML/jackson-databind/issues/2807
+        coreLibraryDesugaringEnabled false
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+        freeCompilerArgs = ['-Xjvm-default=compatibility']
+    }
+
+    // https://stackoverflow.com/questions/44342455/more-than-one-file-was-found-with-os-independent-path-meta-inf-license
+    packagingOptions {
+        exclude 'META-INF/DEPENDENCIES'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/license.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/ASL2.0'
+        exclude("META-INF/*.kotlin_module")
+    }
+}
+repositories {
+    jcenter()
+    maven { url 'https://jitpack.io' }
+    mavenCentral()
+    google()
+}
+
+dependencies {
+
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    compile "org.jetbrains.kotlin:kotlin-reflect"
+
+    implementation fileTree(dir: "libs", include: ["*.jar"])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib:1.5.10"
+    implementation 'androidx.core:core-ktx:1.6.0'
+    implementation 'androidx.appcompat:appcompat:1.3.1'
+    implementation 'com.google.android.material:material:1.4.0'
+    implementation 'androidx.constraintlayout:constraintlayout:2.1.0'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
+    implementation 'androidx.lifecycle:lifecycle-extensions:2.2.0'
+    implementation 'androidx.navigation:navigation-fragment-ktx:2.3.5'
+    implementation 'androidx.navigation:navigation-ui-ktx:2.3.5'
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
+
+    // Tests
+    testImplementation 'junit:junit:4.13.2'
+    testImplementation "com.google.truth:truth:0.40"
+    testImplementation "org.spekframework.spek2:spek-dsl-jvm:2.0.9"
+    testImplementation "org.junit.jupiter:junit-jupiter-api:5.5.1"
+    testImplementation "org.junit.platform:junit-platform-runner:1.5.1"
+    testImplementation "org.spekframework.spek2:spek-dsl-jvm:2.0.9"
+    testImplementation "org.spekframework.spek2:spek-runner-junit5:2.0.9"
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.5.1'
+    testImplementation 'androidx.test:core:1.4.0'
+
+    implementation "io.karn:khttp-android:0.1.2"
+    implementation "androidx.preference:preference-ktx:1.1.1"
+    implementation "androidx.preference:preference-ktx:1.1.1"
+    implementation 'com.github.bumptech.glide:glide:4.12.0'
+    implementation "androidx.lifecycle:lifecycle-common-java8:2.3.1"
+    kapt 'com.github.bumptech.glide:compiler:4.11.0'
+    implementation "com.squareup.moshi:moshi:1.11.0"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.11.3"
+
+    // Exoplayer
+    implementation 'com.google.android.exoplayer:exoplayer:2.14.2'
+    implementation 'com.google.android.exoplayer:extension-cast:2.14.2'
+    implementation "com.google.android.exoplayer:extension-mediasession:2.14.2"
+    implementation "com.google.android.exoplayer:extension-leanback:2.14.2"
+
+    // Bug reports
+    implementation "ch.acra:acra-core:5.8.4"
+    implementation "ch.acra:acra-toast:5.8.4"
+
+    // Parallax scroll
+    implementation 'com.github.nirhart:ParallaxScroll:dd53d1f9d1'
+
+    // Blur
+    implementation 'jp.wasabeef:glide-transformations:4.0.0'
+
+    // Css selectors
+    implementation 'org.jsoup:jsoup:1.13.1'
+
+    // TV
+    implementation "androidx.leanback:leanback:1.0.0"
+    implementation "androidx.leanback:leanback-paging:1.1.0-alpha07"
+
+    // leanback-preference is an add-on that provides a settings UI for TV apps.
+    implementation "androidx.leanback:leanback-preference:1.1.0-rc01"
+
+    // leanback-tab is an add-on that provides customized TabLayout to be used as the top navigation bar.
+    implementation "androidx.leanback:leanback-tab:1.1.0-beta01"
+
+    // Js eval
+    // https://mvnrepository.com/artifact/org.mozilla/rhino
+    //implementation group: 'org.mozilla', name: 'rhino', version: '1.7.6'
+
+    implementation "androidx.recyclerview:recyclerview:1.2.1"
+
+    // Notifications
+    implementation platform('com.google.firebase:firebase-bom:28.1.0')
+    implementation 'com.google.firebase:firebase-messaging-ktx'
+
+    // Double tap
+    // implementation 'com.github.vkay94:DoubleTapPlayerView:1.0.2'
+
+    // Theme
+    implementation 'com.jaredrummler:cyanea:1.0.2'
+
+    // Downloading
+    implementation "androidx.work:work-runtime:2.7.0-beta01"
+    implementation "androidx.work:work-runtime-ktx:2.7.0-beta01"
+
+    // For MAL list
+    implementation "androidx.viewpager2:viewpager2:1.0.0"
+    implementation 'me.xdrop:fuzzywuzzy:1.3.1'
+
+    // Nice anime info ui
+    implementation 'com.github.discord:OverlappingPanels:0.1.3'
+
+    // Acra
+    compileOnly "com.google.auto.service:auto-service-annotations:1.0"
+    kapt "com.google.auto.service:auto-service:1.0"
+}
+
+apply plugin: 'com.android.application'
+apply plugin: 'io.michaelrocks.paranoid'
+
+paranoid {
+    // Random int, null generates a new on each build
+    obfuscationSeed = 34928734798
+}

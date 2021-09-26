@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+    colorPrimary: Primary color !!! Use @color/ to prevent android TV bugs in player !!!
+    colorPrimaryDark: Darker
+    colorPrimaryDarker: Darker
+    colorPrimaryMegaDark: Black-ish version of colorPrimary
+
+    colorAccent: Same as colorPrimary
+    colorOnPrimary: Same as colorPrimary
+    colorPrimarySecond: Same as colorPrimary (Some hack I don't remember why)
+    android:colorAccent: Same as colorPrimary (Because otherwise some stuff like settings fuck up on android TV)
+    -->
+
+
+    <style name="OverlayPrimaryColorBlue">
+        <item name="colorPrimary">@color/colorPrimaryBlue</item>
+        <item name="colorPrimaryDark">#4855A2</item>
+        <item name="colorPrimaryDarker">#363E74</item>
+        <item name="colorPrimaryMegaDark">#191F43</item>
+        <item name="colorAccent">#5A6BCB</item>
+        <item name="colorOnPrimary">#5A6BCB</item>
+        <item name="colorPrimarySecond">#5664B7</item>
+        <!-- Needed for leanback fuckery -->
+        <item name="android:colorAccent">@color/colorPrimaryBlue</item>
+    </style>
+
+    <style name="OverlayPrimaryColorPurple">
+        <item name="colorPrimaryMegaDark">#210648</item>
+        <item name="colorPrimary">@color/colorPrimaryPurple</item>
+        <item name="colorPrimaryDark">#4704A3</item>
+        <item name="colorPrimaryDarker">#39097D</item>
+        <item name="colorAccent">#7125DB</item>
+        <item name="colorOnPrimary">#7125DB</item>
+        <item name="colorPrimarySecond">#6200EA</item>
+        <item name="android:colorAccent">@color/colorPrimaryPurple</item>
+    </style>
+
+    <style name="OverlayPrimaryColorGreen">
+        <item name="colorPrimaryMegaDark">#003029</item>
+        <item name="colorPrimary">@color/colorPrimaryGreen</item>
+        <item name="colorPrimaryDark">#007363</item>
+        <item name="colorPrimaryDarker">#004F44</item>
+        <item name="colorAccent">#39C1AE</item>
+        <item name="colorOnPrimary">#39C1AE</item>
+        <item name="colorPrimarySecond">#00BFA5</item>
+        <item name="android:colorAccent">@color/colorPrimaryGreen</item>
+
+    </style>
+
+    <style name="OverlayPrimaryColorGreenApple">
+        <item name="colorPrimaryMegaDark">#0F2F1B</item>
+        <item name="colorPrimary">@color/colorPrimaryGreenApple</item>
+        <item name="colorPrimaryDark">#319B5A</item>
+        <item name="colorPrimaryDarker">#267845</item>
+        <item name="colorAccent">#51C57E</item>
+        <item name="colorOnPrimary">#51C57E</item>
+        <item name="colorPrimarySecond">#48E484</item>
+        <item name="android:colorAccent">@color/colorPrimaryGreenApple</item>
+    </style>
+
+
+    <style name="OverlayPrimaryColorPink">
+        <item name="colorPrimary">@color/colorPrimaryPink</item>
+        <item name="colorPrimaryDark">#A92051</item>
+        <item name="colorPrimaryDarker">#6B1534</item>
+        <item name="colorPrimaryMegaDark">#3D0C1E</item>
+        <item name="colorAccent">#E02A6B</item>
+        <item name="colorOnPrimary">#E02A6B</item>
+        <item name="colorPrimarySecond">#E02A6B</item>
+        <item name="android:colorAccent">@color/colorPrimaryPink</item>
+    </style>
+
+    <style name="OverlayPrimaryColorOrange">
+        <item name="colorPrimary">@color/colorPrimaryOrange</item>
+        <item name="colorPrimaryDark">#C75500</item>
+        <item name="colorPrimaryDarker">#943F00</item>
+        <item name="colorPrimaryMegaDark">#502200</item>
+        <item name="colorAccent">@color/colorPrimaryOrange</item>
+        <item name="colorOnPrimary">@color/colorPrimaryOrange</item>
+        <item name="colorPrimarySecond">@color/colorPrimaryOrange</item>
+        <item name="android:colorAccent">@color/colorPrimaryOrange</item>
+    </style>
+
+
+    <style name="OverlayPrimaryColorLime">
+        <item name="colorPrimary">@color/colorPrimaryLime</item>
+        <item name="colorPrimaryDark">#7CA701</item>
+        <item name="colorPrimaryDarker">#526E00</item>
+        <item name="colorPrimaryMegaDark">#2E3E00</item>
+        <item name="colorAccent">@color/colorPrimaryLime</item>
+        <item name="colorOnPrimary">@color/colorPrimaryLime</item>
+        <item name="colorPrimarySecond">@color/colorPrimaryLime</item>
+        <item name="android:colorAccent">@color/colorPrimaryLime</item>
+    </style>
+
+    <style name="OverlayPrimaryColorYellow">
+        <item name="colorPrimary">@color/colorPrimaryYellow</item>
+        <item name="colorPrimaryDark">#AE9400</item>
+        <item name="colorPrimaryDarker">#766400</item>
+        <item name="colorPrimaryMegaDark">#443A00</item>
+        <item name="colorAccent">@color/colorPrimaryYellow</item>
+        <item name="colorOnPrimary">@color/colorPrimaryYellow</item>
+        <item name="colorPrimarySecond">@color/colorPrimaryYellow</item>
+        <item name="android:colorAccent">@color/colorPrimaryYellow</item>
+    </style>
+
+    <style name="OverlayPrimaryColorLightBlue">
+        <item name="colorPrimary">@color/colorPrimaryLightBlue</item>
+        <item name="colorPrimaryDark">#2F91AD</item>
+        <item name="colorPrimaryDarker">#1C596A</item>
+        <item name="colorPrimaryMegaDark">#0E2D36</item>
+        <item name="colorAccent">@color/colorPrimaryLightBlue</item>
+        <item name="colorOnPrimary">@color/colorPrimaryLightBlue</item>
+        <item name="colorPrimarySecond">@color/colorPrimaryLightBlue</item>
+        <item name="android:colorAccent">@color/colorPrimaryLightBlue</item>
+    </style>
+
+</resources>

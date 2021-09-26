@@ -1,0 +1,93 @@
+<resources>
+    <string name="changelog">\n
+        + Reworked the anime info UI\n
+        + Moved the anime info play button to the anime poster\n
+        + Added recommended and related\n
+        + Added anime trailer\n
+        + Crashfixes\n
+    </string>
+    <string name="app_name">Shiro</string>
+    <string name="title_home">Home</string>
+    <string name="title_search">Search</string>
+    <string name="title_settings">Settings</string>
+    <string name="search_hint">Search anime…</string>
+    <string name="trending_anime">Trending</string>
+    <string name="home_ongoing">Ongoing</string>
+    <string name="main_watch_button_text">Play</string>
+    <string name="main_info_button_text">Info</string>
+    <string name="bookmark_btt">Bookmark</string>
+    <string name="bookmark_btt_hint">Toggle Bookmark</string>
+    <string name="viewstate_btt">Mark episodes seen</string>
+    <string name="viewstate_btt_hint">Toggle Viewstate</string>
+    <string name="anilist_btt">Anilist</string>
+    <string name="anilist_btt_hint">Anilist</string>
+    <string name="home_recently_updated">Recently Updated</string>
+    <string name="home_background_content_description">Background</string>
+    <string name="resultpage1">Download something to make it show up here</string>
+    <string name="resultpage2">Downloads unavailable</string>
+    <string name="error_connecting_reload">Error Connecting, Reload</string>
+    <string name="acra_report_toast">Sorry, the application crashed. An anonymous bug report will be sent to the
+        developers :)
+    </string>
+    <string name="pref_disable_acra">Disable automatic bug reporting</string>
+    <string name="downloads">Downloads</string>
+    <string name="latest_anime">Latest anime</string>
+    <string name="continue_watching">Continue watching</string>
+    <string name="favorites">Favorites</string>
+    <string name="schedule">Schedule</string>
+    <string name="episodes">Episodes</string>
+    <string name="continue_watching_play_episode_button">Play episode</string>
+    <string name="continue_watching_info_button">Info</string>
+    <string name="continue_watching_remove_button">Remove</string>
+    <string name="number_picker_set_progress">Set progress</string>
+    <string name="go_back">Go back</string>
+    <string name="rating_10">10 - Masterpiece</string>
+    <string name="rating_9">9 - Great</string>
+    <string name="rating_8">8 - Very good</string>
+    <string name="rating_7">7 - Good</string>
+    <string name="rating_6">6 - Fine</string>
+    <string name="rating_5">5 - Average</string>
+    <string name="rating_4">4 - Bad</string>
+    <string name="rating_3">3 - Very bad</string>
+    <string name="rating_2">2 - Horrible</string>
+    <string name="rating_1">1 - Appalling</string>
+    <string name="rating_no_rating">No rating</string>
+    <string name="stop_download">Stop download</string>
+    <string name="remove_download">Remove download</string>
+    <string name="start_download">Start download</string>
+    <string name="video_thumbnail">Video thumbnail</string>
+    <string name="video_play_button">Video play button</string>
+    <string name="series_thumbnail">Series thumbnail</string>
+    <string name="go_to_series">Go to series</string>
+    <string name="status_picker_watching">Watching</string>
+    <string name="status_picker_completed">Completed</string>
+    <string name="status_picker_paused">Paused</string>
+    <string name="status_picker_dropped">Dropped</string>
+    <string name="status_picker_planning_to_watch">Planning to watch</string>
+    <string name="status_picker_rewatching">Rewatching</string>
+    <string name="status_picker_none">None</string>
+    <string name="update_dialog_update_now">Update now</string>
+    <string name="update_dialog_changelog">Changelog</string>
+    <string name="update_dialog_dont_ask_again">Don\'t ask again</string>
+    <string name="update_dialog_update_later">Update later</string>
+    <string name="player_skip_button_text">10</string>
+    <string name="resume_download">Resume Download</string>
+    <string name="delete_file">Delete File</string>
+    <string name="favorite_show">Favorite show</string>
+    <string name="next_episode">Next episode</string>
+    <string name="pause_download">Pause Download</string>
+    <string name="browse_title"></string>
+    <string name="related_movies">Related Videos</string>
+    <string name="grid_view">Grid View</string>
+    <string name="popup_delete_file">Delete File</string>
+    <string name="popup_play_file">Play File</string>
+    <string name="popup_resume_download">Resume Download</string>
+    <string name="popup_pause_download">Pause Download</string>
+    <string name="error_loading_links">Error Loading Links</string>
+
+    <!-- Error messages -->
+    <string name="error_fragment_message">An error occurred</string>
+    <string name="dismiss_error">Dismiss</string>
+    <string name="subscriptions">Subscriptions</string>
+    <string name="library">Library</string>
+</resources>

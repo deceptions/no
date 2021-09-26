@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        android:background="@drawable/outline_background"
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:focusable="true"
+        android:clickable="true"
+        android:id="@+id/home_card_root"
+        android:orientation="vertical"
+        android:scaleX="0.9"
+        android:scaleY="0.9"
+        android:layout_marginStart="5dp"
+        android:layout_marginEnd="5dp"
+
+        xmlns:tools="http://schemas.android.com/tools">
+    <!-- card gets scaled to 1.0 during runtime in CardAdapter -->
+
+    <FrameLayout android:layout_width="match_parent" android:layout_height="match_parent">
+
+        <androidx.cardview.widget.CardView
+                android:layout_margin="2dp"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="2dp"
+                android:elevation="10dp"
+                android:id="@+id/home_card_recently_seen"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardBackgroundColor="?attr/backgroundColor"
+
+        >
+            <ImageView
+                    android:background="@color/transparent"
+                    android:duplicateParentState="true"
+                    android:foreground="?android:attr/selectableItemBackgroundBorderless"
+                    android:layout_width="114dp"
+                    android:layout_height="180dp"
+                    android:scaleType="centerCrop"
+                    android:id="@+id/imageView"
+            >
+            </ImageView>
+            <ImageView
+                    android:background="@color/transparent"
+                    android:scaleType="centerInside"
+                    android:layout_width="114dp"
+                    android:layout_height="180dp"
+                    android:scaleX="0.5"
+                    android:scaleY="0.5"
+                    android:src="@drawable/netflix_play_btt"
+                    android:contentDescription="@string/continue_watching_play_episode_button">
+            </ImageView>
+            <RelativeLayout
+                    android:background="@color/transparent"
+                    android:layout_width="114dp"
+                    android:layout_height="180dp"
+                    android:gravity="bottom"
+            >
+                <androidx.core.widget.ContentLoadingProgressBar
+                        android:background="@color/transparent"
+                        android:id="@+id/video_progress"
+                        android:layout_width="114dp"
+                        android:indeterminate="false"
+                        style="@android:style/Widget.Material.ProgressBar.Horizontal"
+                        android:layout_height="wrap_content"
+                        tools:progress="30"
+                        tools:max="100"
+                        android:elevation="100dp"
+                        android:layout_alignParentBottom="true"
+                >
+                    <!--                        android:layout_above="@+id/imageText"-->
+                </androidx.core.widget.ContentLoadingProgressBar>
+                <TextView
+                        android:layout_width="114dp"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:layout_gravity="bottom"
+                        android:paddingBottom="15dp"
+                        android:paddingTop="30dp"
+                        android:textColor="@color/textColor"
+                        android:id="@+id/imageText"
+                        android:textStyle="bold"
+                        android:maxLines="1"
+                        android:background="@drawable/title_shadow"
+                        android:layout_alignParentBottom="true"
+                />
+            </RelativeLayout>
+            <!-- giant padding for bigger hitboxes -->
+            <ImageView
+                    android:background="@drawable/circle_shadow"
+                    android:id="@+id/infoButton"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:elevation="10dp"
+                    android:padding="10dp"
+                    app:tint="@color/white"
+                    app:srcCompat="@drawable/ic_outline_info_24"
+                    android:layout_gravity="top|start"
+                    android:contentDescription="@string/continue_watching_info_button"/>
+
+            <ImageView
+                    android:background="@drawable/circle_shadow"
+                    android:id="@+id/removeButton"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:padding="10dp"
+                    android:elevation="10dp"
+                    app:tint="@color/white"
+                    app:srcCompat="@drawable/ic_baseline_clear_24"
+                    android:layout_gravity="end|top"
+                    android:contentDescription="@string/continue_watching_remove_button"
+            />
+        </androidx.cardview.widget.CardView>
+
+        <!--        TV buttons below-->
+        <androidx.constraintlayout.widget.ConstraintLayout
+                android:elevation="100dp"
+                android:background="@color/black_overlay_darker"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:orientation="vertical"
+                android:id="@+id/menu_root"
+                android:visibility="gone"
+        >
+            <Button
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintBottom_toTopOf="@+id/tv_button_remove"
+                    android:id="@+id/tv_button_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:text="Info"
+                    android:textSize="12sp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/textColor"
+                    android:background="@drawable/outline_background"
+                    style="@style/DialogButton"
+            />
+            <Button
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_button_info"
+                    app:layout_constraintBottom_toTopOf="@id/tv_button_cancel"
+                    android:id="@+id/tv_button_remove"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:text="Remove"
+                    android:textSize="12sp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/textColor"
+                    android:background="@drawable/outline_background"
+                    style="@style/DialogButton"
+            />
+            <Button
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintTop_toBottomOf="@id/tv_button_remove"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    android:id="@+id/tv_button_cancel"
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_centerHorizontal="true"
+                    android:text="Cancel"
+                    android:textSize="12sp"
+                    android:paddingStart="0dp"
+                    android:paddingEnd="0dp"
+                    android:textColor="@color/textColor"
+                    android:background="@drawable/outline_background"
+                    style="@style/DialogButton"
+
+            />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </FrameLayout>
+
+
+</LinearLayout>

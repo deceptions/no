@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            xmlns:tools="http://schemas.android.com/tools"
+            android:id="@+id/mobile_navigation"
+            android:label="@string/title_home"
+            app:startDestination="@+id/navigation_home"
+>
+
+    <action android:id="@+id/global_to_navigation_results"
+            app:destination="@id/navigation_results"
+            app:enterAnim="@anim/enter"
+            app:exitAnim="@anim/exit"
+            app:popEnterAnim="@anim/enter"
+            app:popExitAnim="@anim/exit"
+    >
+        <argument
+                android:name="slug"
+                app:argType="string"/>
+        <argument
+                android:name="name"
+                app:argType="string"
+        />
+        <argument
+                android:name="isMalId"
+                app:argType="boolean"
+                android:defaultValue="false"
+        />
+    </action>
+
+    <action android:id="@+id/global_to_navigation_player"
+            app:destination="@id/navigation_player"/>
+
+    <fragment
+            android:id="@+id/navigation_home"
+            android:name="com.lagradost.shiro.ui.home.HomeFragment"
+            android:label="@string/title_home"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_home">
+        <action
+                android:id="@+id/action_navigation_home_to_navigation_expanded_home"
+                app:destination="@id/navigation_expanded_home"
+                app:popEnterAnim="@anim/slide_in_left"
+                app:popExitAnim="@anim/slide_out_right"
+                app:enterAnim="@anim/slide_in_right"
+                app:exitAnim="@anim/slide_out_left"
+        >
+            <argument
+                    android:name="card_list"
+                    app:argType="string"/>
+            <argument
+                    android:name="title"
+                    app:argType="string"
+            />
+        </action>
+    </fragment>
+
+
+    <fragment
+            android:id="@+id/navigation_expanded_home"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.home.ExpandedHomeFragment"
+            tools:layout="@layout/fragment_expanded_home"
+    >
+    </fragment>
+
+    <fragment
+            android:id="@+id/navigation_search"
+            android:name="com.lagradost.shiro.ui.search.SearchFragment"
+            android:label="@string/title_search"
+            android:layout_height="match_parent"
+            tools:layout="@layout/fragment_search">
+
+    </fragment>
+
+    <fragment
+            android:id="@+id/navigation_downloads"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.downloads.DownloadFragment"
+            android:label="Downloads"
+            tools:layout="@layout/fragment_download"
+    >
+        <action android:id="@+id/action_navigation_downloads_to_navigation_download_queue"
+                app:destination="@id/navigation_download_queue"
+                app:enterAnim="@anim/enter"
+                app:exitAnim="@anim/exit"
+                app:popEnterAnim="@anim/enter"
+                app:popExitAnim="@anim/exit"
+        />
+        <action android:id="@+id/action_navigation_downloads_to_navigation_download_child"
+                app:destination="@id/navigation_download_child"
+                app:popEnterAnim="@anim/slide_in_left"
+                app:popExitAnim="@anim/slide_out_right"
+                app:enterAnim="@anim/slide_in_right"
+                app:exitAnim="@anim/slide_out_left"
+        >
+            <argument
+                    android:name="slug"
+                    app:argType="string"/>
+        </action>
+    </fragment>
+
+    <fragment
+            android:id="@+id/navigation_results"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.result.ResultFragment"
+            android:label="Results"
+            tools:layout="@layout/fragment_results"
+
+    >
+    </fragment>
+
+    <fragment
+            android:id="@+id/navigation_player"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.player.PlayerFragment"
+            android:label="Results"
+            tools:layout="@layout/player"
+    >
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_download_queue"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.downloads.QueueFragment"
+            android:label="Results"
+            tools:layout="@layout/fragment_queue"
+    >
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_download_child"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.downloads.DownloadFragmentChild"
+            tools:layout="@layout/fragment_download_child"
+
+    >
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_library"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.library.LibraryFragment"
+            android:label="Library"
+            tools:layout="@layout/fragment_library"
+    >
+    </fragment>
+    <fragment
+            android:id="@+id/navigation_settings"
+            android:layout_height="match_parent"
+            android:name="com.lagradost.shiro.ui.settings.SettingsFragmentNew"
+            android:label="@string/title_settings"
+            tools:layout="@layout/fragment_settings"
+
+    />
+</navigation>

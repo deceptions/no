@@ -1,0 +1,236 @@
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto">
+    <PreferenceCategory
+            android:key="general"
+            android:title="General"
+    >
+        <SwitchPreference
+                android:icon="@drawable/ic_baseline_language_24"
+                app:key="hide_dubbed"
+                android:title="Hide all dubbed shows"
+                app:defaultValue="true"
+        />
+        <SwitchPreference
+                android:icon="@drawable/outlined_heart"
+                app:key="hold_to_favorite"
+                android:title="Hold to favorite"
+                app:defaultValue="false"
+        />
+<!--        <SwitchPreference-->
+<!--                android:icon="@drawable/ic_baseline_vpn_lock_24"-->
+<!--                app:key="alternative_vidstream"-->
+<!--                android:title="Use alternative Vidstream"-->
+<!--                android:summaryOn="Some ISPs block vidstream\nUsing streamani.net"-->
+<!--                android:summaryOff="Some ISPs block vidstream\nUsing gogo-stream.com"-->
+<!--                app:defaultValue="false"-->
+<!--        />-->
+        <SwitchPreference
+                android:icon="@drawable/ic_baseline_filter_list_24"
+                app:key="search_for_filler_episodes"
+                android:title="Search and display filler episodes"
+                app:defaultValue="true"
+                app:summary="Using animefillerlist.com"
+        />
+        <!--<SeekBarPreference
+                android:icon="@drawable/ic_baseline_access_time_24"
+                android:title="Fast forward skip time"
+                android:defaultValue="10"
+                android:key="fast_forward_button_time"
+                app:showSeekBarValue="true"
+                app:seekBarIncrement="5"
+        >
+        </SeekBarPreference>-->
+        <SwitchPreference android:key="acra.disable"
+                          android:icon="@drawable/ic_baseline_bug_report_24"
+                          android:title="@string/pref_disable_acra"
+                          android:summaryOff="Only sends data on crashes"
+                          android:summaryOn="Sends no data"
+                          android:defaultValue="false"/>
+    </PreferenceCategory>
+    <PreferenceCategory
+            android:key="style"
+            android:title="Style"
+            app:isPreferenceVisible="true"
+    >
+        <ListPreference
+                android:title="Accent color"
+                app:key="accent_color"
+                android:icon="@drawable/ic_baseline_format_paint_24"
+                app:useSimpleSummaryProvider="true"
+                android:entries="@array/AccentColors"
+                android:entryValues="@array/AccentColors"
+        />
+        <ListPreference
+                app:key="theme"
+                android:title="Theme"
+                android:icon="@drawable/ic_baseline_color_lens_24"
+                app:useSimpleSummaryProvider="true"
+                android:entries="@array/ThemesDark"
+                android:entryValues="@array/ThemesDark"
+        />
+    </PreferenceCategory>
+    <PreferenceCategory
+            android:key="player"
+            android:title="Player"
+            app:isPreferenceVisible="true"
+    >
+        <SwitchPreference
+                android:icon="@drawable/ic_baseline_queue_play_next_24"
+                app:key="autoplay_enabled"
+                android:title="Autoplay next episode"
+                android:summary="Does not work if there's no player interaction during 3 episodes"
+                app:defaultValue="true"
+        />
+        <SeekBarPreference
+                android:icon="@drawable/ic_baseline_cloud_done_24"
+                android:title="Completed percentage"
+                android:summary="Percentage of video watched to sync as seen. 0 disables the feature"
+                android:defaultValue="80"
+                android:max="100"
+                android:key="completed_percentage"
+                app:showSeekBarValue="true"
+                app:seekBarIncrement="5"
+        >
+        </SeekBarPreference>
+        <SeekBarPreference
+                android:icon="@drawable/ic_baseline_access_time_24"
+                android:title="Fast forward skip time"
+                android:defaultValue="10"
+                android:key="fast_forward_button_time"
+                app:showSeekBarValue="true"
+                app:seekBarIncrement="5"
+        >
+        </SeekBarPreference>
+    </PreferenceCategory>
+    <PreferenceCategory
+            app:isPreferenceVisible="true"
+            android:key="accounts"
+            android:title="Accounts"
+    >
+        <Preference
+                android:title="Anilist account"
+                app:key="anilist_setting_btt"
+                android:icon="@drawable/ic_anilist_icon"
+        />
+        <Preference
+                android:title="MAL account"
+                app:key="mal_setting_btt"
+                android:icon="@drawable/mal_logo"
+        />
+        <Preference
+                android:title="Donor ID"
+                app:key="donor_id"
+                app:isPreferenceVisible="false"
+                android:icon="@drawable/ic_baseline_perm_identity_24"
+        />
+    </PreferenceCategory>
+    <PreferenceCategory
+            android:key="history"
+            android:title="History"
+    >
+        <SwitchPreference
+                android:icon="@drawable/ic_baseline_history_24"
+                android:key="save_history"
+                android:title="Save and sync watch history"
+                app:defaultValue="true"
+        />
+        <Preference
+                android:icon="@drawable/ic_baseline_delete_outline_24"
+                app:key="clear_history"
+                android:title="Clear watch history"
+        />
+        <Preference
+                android:icon="@drawable/ic_baseline_delete_outline_24"
+                app:key="clear_cache"
+                android:title="Clear image cache"
+        />
+    </PreferenceCategory>
+    <PreferenceCategory
+            android:key="update_info"
+            android:title="Version info"
+    >
+        <Preference
+                android:icon="@drawable/ic_baseline_build_24"
+                app:key="version"
+                app:title="Version"
+        />
+        <SwitchPreference
+                app:key="auto_update"
+                android:title="Show app updates"
+                app:defaultValue="true"
+                android:icon="@drawable/ic_baseline_notifications_active_24"
+        />
+        <SwitchPreference
+                app:key="beta_mode"
+                android:title="Beta channel"
+                android:summary="Try new and unstable updates first"
+                app:defaultValue="false"
+                android:icon="@drawable/ic_baseline_warning_24"
+        />
+        <Preference
+                android:title="Check for update"
+                android:icon="@drawable/rdload"
+                app:key="check_updates"
+        />
+        <Preference
+                android:title="Changelog"
+                app:key="changelog"
+                android:icon="@drawable/ic_baseline_notes_24"
+        />
+    </PreferenceCategory>
+    <PreferenceCategory
+            android:key="info"
+            android:title="Info"
+    >
+        <Preference
+                android:icon="@drawable/ic_baseline_payment_24"
+                android:title="Donate to ********"
+                app:summary="To help fund the site"
+        >
+            <intent android:action="android.intent.action.VIEW"
+                    android:data="https://ko-fi.com/shirois"/>
+
+        </Preference>
+        <Preference
+                android:icon="@drawable/ic_baseline_payment_24"
+                android:title="Donate to the App developers"
+                app:summary="If you have too much cash"
+        >
+            <intent android:action="android.intent.action.VIEW"
+                    android:data="https://ko-fi.com/lagradost"/>
+
+        </Preference>
+        <Preference
+                android:title="******** discord"
+                android:icon="@drawable/ic_baseline_discord_24"
+                app:summary="Join the Shiro community"
+        >
+            <intent android:action="android.intent.action.VIEW"
+                    android:data="https://discord.gg/shiro"/>
+
+        </Preference>
+        <Preference
+                android:title="Github"
+                android:icon="@drawable/ic_github_logo"
+                app:summary="Submit issues and contribute to the app">
+
+            <intent android:action="android.intent.action.VIEW"
+                    android:data="https://github.com/Blatzar/shiro-app/"/>
+
+        </Preference>
+        <Preference
+                android:title="Light novel app by the same devs"
+                android:icon="@drawable/quick_novel_icon"
+                app:summary="https://github.com/LagradOst/QuickNovel">
+            <intent android:action="android.intent.action.VIEW"
+                    android:data="https://github.com/LagradOst/QuickNovel"/>
+        </Preference>
+        <Preference
+                android:title="Developers (to complain to)"
+                android:icon="@drawable/ic_baseline_code_24"
+                app:summary="Lag#5744 &amp; Blue Fire#1471"
+        />
+    </PreferenceCategory>
+
+</PreferenceScreen>

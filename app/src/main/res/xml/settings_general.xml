@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_screen_lock_landscape_24"
+            app:key="force_landscape"
+            android:title="Force landscape"
+            android:summary="Useful for tablets"
+            app:defaultValue="false"
+    />
+    <!--
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_language_24"
+            app:key="hide_dubbed"
+            android:title="Hide all dubbed shows"
+            app:defaultValue="true"
+    />-->
+    <SwitchPreference
+            android:icon="@drawable/quantum_ic_refresh_white_24"
+            app:key="swipe_to_refresh"
+            android:title="Swipe to refresh in the homepage"
+            app:defaultValue="true"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_notifications_none_24"
+            app:key="show_subscribed"
+            android:title="Show subscribed shows in the homepage"
+            app:defaultValue="true"
+    />
+    <!--<SwitchPreference
+            android:icon="@drawable/outlined_heart"
+            app:key="hold_to_favorite"
+            android:title="Hold to favorite"
+            app:defaultValue="false"
+    />-->
+    <ListPreference
+            android:title="Hide shows"
+            app:key="hide_behavior"
+            android:icon="@drawable/ic_baseline_language_24"
+            app:useSimpleSummaryProvider="true"
+            android:entries="@array/HideBehavior"
+            android:entryValues="@array/HideBehavior"
+    />
+    <SwitchPreference
+            app:isPreferenceVisible="false"
+            android:icon="@drawable/ic_baseline_language_24"
+            app:key="hide_chinese"
+            android:title="Hide chinese shows"
+            app:defaultValue="false"
+    />
+
+    <ListPreference
+            android:title="Hold behavior"
+            app:key="hold_behavior"
+            android:icon="@drawable/ic_baseline_touch_app_24"
+            app:useSimpleSummaryProvider="true"
+            android:entries="@array/LongClickOptions"
+            android:entryValues="@array/LongClickOptions"
+    />
+    <!--
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_storage_24"
+            app:key="use_external_storage"
+            android:title="Use external storage for downloads"
+            android:summaryOn="Files downloaded to Download/Shiro"
+            app:defaultValue="false"
+            app:isPreferenceVisible="false"
+    />
+    -->
+    <SwitchPreference
+            android:icon="@drawable/netflix_download"
+            app:key="pick_downloads"
+            android:title="Pick download source manually"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            app:key="subscribe_to_announcements"
+            android:title="Subscribe to announcement notifications"
+            app:summary="For example site downtime"
+            app:defaultValue="false"
+            android:icon="@drawable/ic_baseline_notifications_active_24"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_data_saver_on_24"
+            app:key="data_saving"
+            android:title="Data Saver"
+            android:summary="Only loads images from cache"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_data_saver_on_24"
+            app:key="disable_data_downloads"
+            android:title="Disable downloads on mobile data"
+            android:summary="The queue will be automatically paused when any downloads are made with data"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_filter_list_24"
+            app:key="search_for_filler_episodes"
+            android:title="Search and display filler episodes"
+            app:defaultValue="true"
+            app:summary="Using animefillerlist.com"
+    />
+    <SeekBarPreference
+            android:icon="@drawable/netflix_download"
+            android:title="Max concurrent downloads"
+            android:defaultValue="1"
+            android:key="concurrent_downloads"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="1"
+            android:max="5"
+            app:min="1"
+            android:summary="More concurrent downloads will lag a lot on low-end phones. This will only be applied after an app restart."
+    >
+    </SeekBarPreference>
+    <SwitchPreference android:key="acra.disable"
+                      android:icon="@drawable/ic_baseline_bug_report_24"
+                      android:title="@string/pref_disable_acra"
+                      android:summaryOff="Only sends data on crashes"
+                      android:summaryOn="Sends no data"
+                      android:defaultValue="false"/>
+
+</PreferenceScreen>

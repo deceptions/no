@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:background="@null"
+        android:layout_height="match_parent">
+    <androidx.cardview.widget.CardView
+            app:cardCornerRadius="10dp"
+            android:id="@+id/genres_top_bar"
+            android:elevation="100dp"
+            app:cardElevation="100dp"
+            android:backgroundTint="?attr/colorPrimaryDark"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        <FrameLayout
+                android:paddingTop="5dp"
+                android:paddingBottom="5dp"
+                android:paddingLeft="20dp"
+                android:paddingRight="20dp"
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="55dp">
+            <TextView
+                    android:layout_gravity="center_vertical"
+                    android:text="Genres"
+                    android:textColor="@color/white"
+                    android:textSize="18sp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+            >
+            </TextView>
+
+            <com.google.android.material.button.MaterialButton
+                    android:gravity="center"
+                    android:layout_gravity="end"
+                    android:layout_height="45dp"
+                    android:layout_width="wrap_content"
+                    android:minWidth="100dp"
+
+                    android:text="Reset"
+                    android:id="@+id/filter_button"
+                    android:textAllCaps="false"
+                    android:textSize="15sp"
+                    app:cornerRadius="5dp"
+                    app:strokeWidth="2dp"
+                    android:textColor="@color/white"
+                    app:strokeColor="@color/white"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    app:rippleColor="@color/white"
+            >
+            </com.google.android.material.button.MaterialButton>
+        </FrameLayout>
+
+    </androidx.cardview.widget.CardView>
+
+
+    <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:backgroundTint="?attr/backgroundColorDark"
+            android:background="?attr/backgroundColorDark"
+            android:layout_marginTop="-10dp"
+            android:paddingTop="10dp"
+    >
+        <com.lagradost.shiro.ui.search.MyFlowLayout
+                android:id="@+id/search_tags"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+        </com.lagradost.shiro.ui.search.MyFlowLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

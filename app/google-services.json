@@ -1,0 +1,126 @@
+{
+  "project_info": {
+    "project_number": "823439449588",
+    "project_id": "shiro-392ef",
+    "storage_bucket": "shiro-392ef.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:823439449588:android:c20fb75bccb473a0a4eda1",
+        "android_client_info": {
+          "package_name": "com.lagradost.shiro"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "823439449588-2rn0vdpac97hq5j3unn19k0g82k3r0u7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl63cAjYBuzdRoqjzzTJHkCXKrK8Hmkoo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "823439449588-2rn0vdpac97hq5j3unn19k0g82k3r0u7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:823439449588:android:7ec1e49ff83c9b87a4eda1",
+        "android_client_info": {
+          "package_name": "com.lagradost.shiro.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "823439449588-2rn0vdpac97hq5j3unn19k0g82k3r0u7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl63cAjYBuzdRoqjzzTJHkCXKrK8Hmkoo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "823439449588-2rn0vdpac97hq5j3unn19k0g82k3r0u7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:823439449588:android:68b14d64a2b5d99fa4eda1",
+        "android_client_info": {
+          "package_name": "com.lagradost.shiro.tv"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "823439449588-2rn0vdpac97hq5j3unn19k0g82k3r0u7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl63cAjYBuzdRoqjzzTJHkCXKrK8Hmkoo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "823439449588-2rn0vdpac97hq5j3unn19k0g82k3r0u7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:823439449588:android:abf5cdb9c9c2c81ea4eda1",
+        "android_client_info": {
+          "package_name": "com.lagradost.shiro.tv.debug"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "823439449588-2rn0vdpac97hq5j3unn19k0g82k3r0u7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCl63cAjYBuzdRoqjzzTJHkCXKrK8Hmkoo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "823439449588-2rn0vdpac97hq5j3unn19k0g82k3r0u7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

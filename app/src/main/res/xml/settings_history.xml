@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+>
+
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_history_24"
+            android:key="save_history"
+            android:title="Save and sync watch history"
+            app:defaultValue="true"
+    />
+    <Preference
+            android:icon="@drawable/ic_baseline_delete_outline_24"
+            app:key="clear_history"
+            android:title="Clear watch history"
+    />
+    <Preference
+            android:icon="@drawable/ic_baseline_delete_outline_24"
+            app:key="clear_cache"
+            android:title="Clear image cache"
+            android:summary="This will only free up storage, not fix any bugs"
+    />
+    <Preference
+            android:icon="@drawable/ic_baseline_delete_outline_24"
+            app:key="clear_network_cache"
+            android:title="Clear network cache"
+    />
+
+    <Preference
+            android:title="Back up all data"
+            app:key="backup_btt"
+            android:icon="@drawable/ic_baseline_settings_backup_restore_24"
+    />
+    <Preference
+            android:title="Restore all data"
+            app:key="restore_btt"
+            android:icon="@drawable/ic_baseline_settings_backup_restore_24"
+    />
+
+</PreferenceScreen>

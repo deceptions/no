@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:orientation="vertical"
+        android:id="@+id/fragment_queue_root"
+        android:background="?attr/backgroundColor"
+>
+    <View
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:id="@+id/top_padding_download_queue"/>
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent">
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="70dp">
+            <FrameLayout
+                    android:layout_margin="5dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/download_go_back_holder"
+            >
+                <ImageView
+                        android:layout_width="30dp"
+                        android:layout_height="30dp"
+                        android:layout_gravity="center"
+                        android:src="@drawable/arrow_back"
+                        android:contentDescription="@string/go_back">
+                </ImageView>
+                <ImageView
+                        android:id="@+id/download_go_back"
+                        android:layout_width="60dp"
+                        android:layout_height="60dp"
+                        android:layout_gravity="center"
+                        android:focusable="true"
+                        android:clickable="true"
+                        android:background="@drawable/video_tap_button"
+                        android:contentDescription="@string/go_back"
+                >
+                </ImageView>
+            </FrameLayout>
+            <TextView
+                    android:text="Queue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_margin="5dp"
+                    android:textSize="17sp"
+                    android:textStyle="bold"
+                    android:id="@+id/download_header_text">
+            </TextView>
+        </LinearLayout>
+
+        <androidx.recyclerview.widget.RecyclerView
+                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                android:id="@+id/queue_res_view"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                tools:listitem="@layout/episode_result_downloaded"
+        >
+        </androidx.recyclerview.widget.RecyclerView>
+    </LinearLayout>
+
+</LinearLayout>

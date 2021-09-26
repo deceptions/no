@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.preference.PreferenceScreen
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools">
+
+
+    <androidx.preference.Preference
+            app:icon="@drawable/ic_baseline_color_lens_24"
+            android:key="pref_theme_picker"
+            android:summary="@string/pref_theme_summary"
+            android:title="@string/pref_theme_title"
+    />
+
+    <com.jaredrummler.android.colorpicker.ColorPreferenceCompat
+            app:icon="@drawable/ic_baseline_format_paint_24"
+            android:defaultValue="@color/cyanea_primary_reference"
+            android:key="pref_color_primary"
+            android:summary="@string/pref_primary_color_summary"
+            android:title="@string/pref_primary_color_title"
+            app:cpv_dialogTitle="@string/pref_primary_color_title"
+    />
+
+    <com.jaredrummler.android.colorpicker.ColorPreferenceCompat
+            app:icon="@drawable/ic_baseline_format_paint_24"
+            android:defaultValue="@color/cyanea_accent_reference"
+            android:key="pref_color_accent"
+            android:summary="@string/pref_accent_color_summary"
+            android:title="@string/pref_accent_color_title"
+            app:cpv_dialogTitle="@string/pref_accent_color_title"
+    />
+
+    <com.jaredrummler.android.colorpicker.ColorPreferenceCompat
+            app:icon="@drawable/ic_baseline_format_paint_24"
+            android:defaultValue="@color/cyanea_background_light"
+            android:key="pref_color_background"
+            android:summary="@string/pref_background_color_summary"
+            android:title="@string/pref_background_color_title"
+            app:cpv_colorPresets="@array/cyanea_background_color_presets"
+            app:cpv_dialogTitle="@string/pref_background_color_title"
+            app:cpv_showColorShades="false"
+            tools:ignore="PrivateResource"/>
+
+    <androidx.preference.SwitchPreferenceCompat
+            android:defaultValue="@bool/should_tint_nav_bar"
+            android:key="pref_color_navigation_bar"
+            android:summary="@string/pref_colored_navigation_bar_summary"
+            android:title="@string/pref_colored_navigation_bar_title"
+            app:isPreferenceVisible="false"
+    />
+
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_more_horiz_24"
+            app:key="accent_color_for_nav_view"
+            android:title="Accent color for bottom navigation icons"
+            android:summary="Some themes may not work with this enabled"
+            app:defaultValue="true"
+    />
+
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_fullscreen_24"
+            app:key="statusbar_hidden"
+            android:title="Hide statusbar"
+            app:defaultValue="true"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_open_in_browser_24"
+            app:key="hide_open_website"
+            android:title="Hide the open website button"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_view_list_24"
+            app:key="compact_search_enabled"
+            android:title="Compact search results"
+            app:defaultValue="true"
+    />
+    <SwitchPreference
+            android:icon="@drawable/search_icon"
+            app:key="top_search_bar"
+            android:title="Top search bar"
+            app:summary="Use the old top search bar layout"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_new_releases_24"
+            app:key="new_results_page"
+            android:title="Use alternative anime info page"
+            app:defaultValue="false"
+            app:isPreferenceVisible="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_image_24"
+            app:key="no_episode_thumbnails"
+            android:title="No episode thumbnails"
+            app:summary="Use the old episode layout without thumbnails"
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_article_24"
+            app:key="no_episode_description"
+            android:title="No episode description"
+            app:defaultValue="false"
+    />
+    <SeekBarPreference
+            android:summary="Double in Landscape mode"
+            android:icon="@drawable/ic_baseline_view_column_24"
+            android:title="Expanded view column count"
+            android:defaultValue="3"
+            android:key="expanded_span_count"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="1"
+            android:max="6"
+            app:min="2"
+    >
+    </SeekBarPreference>
+    <SeekBarPreference
+            android:summary="Double in Landscape mode"
+            android:icon="@drawable/ic_baseline_view_column_24"
+            android:title="Library list view column count"
+            android:defaultValue="1"
+            android:key="library_span_count"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="1"
+            android:max="3"
+            app:min="1"
+    >
+    </SeekBarPreference>
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_view_column_24"
+            android:title="Library list view height (dp)"
+            android:defaultValue="80"
+            android:key="library_view_height"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="5"
+            android:max="150"
+            app:defaultValue="80"
+            app:min="60"
+    >
+    </SeekBarPreference>
+
+
+</androidx.preference.PreferenceScreen>

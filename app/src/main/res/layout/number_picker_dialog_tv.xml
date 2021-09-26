@@ -1,0 +1,107 @@
+<LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:background="?attr/backgroundColor"
+
+>
+    <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="horizontal"
+    >
+        <TextView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:text="-100"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:id="@+id/progress_minus_100"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+        />
+        <TextView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:text="-10"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:id="@+id/progress_minus_10"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+        />
+
+        <TextView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:text="-1"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:id="@+id/progress_minus_1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+        />
+
+        <TextView
+                android:layout_width="100dp"
+                android:layout_height="50dp"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                tools:text="720"
+                android:gravity="center"
+                android:id="@+id/current_progress"
+        >
+
+        </TextView>
+        <TextView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:text="+1"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:id="@+id/progress_plus_1"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+        >
+            <requestFocus/>
+        </TextView>
+        <TextView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:text="+10"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:id="@+id/progress_plus_10"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+        />
+        <TextView
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:text="+100"
+                android:gravity="center"
+                android:textSize="20sp"
+                android:id="@+id/progress_plus_100"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:focusable="true"
+        />
+
+
+    </LinearLayout>
+    <Button
+            android:nextFocusUp="@id/progress_plus_1"
+            android:layout_margin="20dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/number_picker_set_progress"
+            android:textColor="@color/textColor"
+            android:backgroundTint="?attr/colorPrimary"
+            android:id="@+id/episode_progress_btt"
+    />
+
+</LinearLayout>
