@@ -1,0 +1,25 @@
+
+name: Discord Release Announcement
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  announce:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Send release to Discord
+        uses: SethCohen/github-releases-to-discord@v1
+        with:
+          webhook_dis_url: ${{ secrets.WEBHOOK_DIS_URL }}
+          color: "2105893"
+          username: "GitHub Releases"
+          content: "🚀 A new update is available!"
+          footer_title: "Release Changelog"
+          reduce_headings: true        
+          
