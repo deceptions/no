@@ -17,6 +17,8 @@
 package com.lagradost.shiro.ui.settings
 
 import android.content.Intent
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import android.os.Build
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
@@ -118,6 +120,49 @@ open class CyaneaSettingsFragment : PreferenceFragmentCompat(), OnPreferenceChan
             }
             return@setOnPreferenceChangeListener true
         }
+
+        // Picking a mode seeds the matching card defaults; the user can still tune them afterwards.
+        findPreference<ListPreference>("ui_mode")?.setOnPreferenceChangeListener { _, newValue ->
+            val corner = findPreference<SeekBarPreference>("card_corner_dp")
+            val spacing = findPreference<SeekBarPreference>("card_spacing_dp")
+            if (newValue == "modern") {
+                if (corner?.value == 6) corner.value = 14
+                if (spacing?.value == 5) spacing.value = 8
+            } else {
+                if (corner?.value == 14) corner.value = 6
+                if (spacing?.value == 8) spacing.value = 5
+            }
+            true
+        }
+
+        // Card layout presets: one-tap Compact / Classic / Modern.
+        findPreference<Preference>("appearance_preset")?.setOnPreferenceClickListener {
+            val names = arrayOf("Compact", "Classic", "Modern")
+            // ui_mode / corner dp / spacing dp / poster size %
+            val modes = arrayOf("classic", "classic", "modern")
+            val corners = intArrayOf(6, 6, 14)
+            val spacings = intArrayOf(4, 5, 8)
+            val sizes = intArrayOf(85, 100, 115)
+            AlertDialog.Builder(requireContext(), R.style.AlertDialogCustom)
+                .setTitle("Card layout preset")
+                .setItems(names) { _, i ->
+                    findPreference<ListPreference>("ui_mode")?.value = modes[i]
+                    findPreference<SeekBarPreference>("card_corner_dp")?.value = corners[i]
+                    findPreference<SeekBarPreference>("card_spacing_dp")?.value = spacings[i]
+                    findPreference<SeekBarPreference>("poster_size")?.value = sizes[i]
+                    Toast.makeText(context, "${names[i]} preset applied", Toast.LENGTH_SHORT).show()
+                }
+                .show()
+            true
+        }
+        findPreference<Preference>("appearance_reset")?.setOnPreferenceClickListener {
+            findPreference<ListPreference>("ui_mode")?.value = "classic"
+            findPreference<SeekBarPreference>("card_corner_dp")?.value = 6
+            findPreference<SeekBarPreference>("card_spacing_dp")?.value = 5
+            findPreference<SeekBarPreference>("poster_size")?.value = 100
+            Toast.makeText(context, "Card layout reset", Toast.LENGTH_SHORT).show()
+            true
+        }
     }
 
     override fun onResume() {
@@ -128,7 +173,7 @@ open class CyaneaSettingsFragment : PreferenceFragmentCompat(), OnPreferenceChan
         }
     }
 
-    override fun onPreferenceClick(preference: Preference?): Boolean {
+    override fun onPreferenceClick(preference: Preference): Boolean {
         return when (preference) {
             prefThemePicker -> {
                 activity?.run {
@@ -146,7 +191,7 @@ open class CyaneaSettingsFragment : PreferenceFragmentCompat(), OnPreferenceChan
         }
     }
 
-    override fun onPreferenceChange(preference: Preference?, newValue: Any?): Boolean {
+    override fun onPreferenceChange(preference: Preference, newValue: Any?): Boolean {
         fun editTheme(action: (editor: Cyanea.Editor) -> Unit) {
             cyanea.edit {
                 action(this)

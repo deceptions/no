@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.library
+import com.lagradost.shiro.utils.fv
 
 import DataStore.getKey
 import DataStore.removeKey
@@ -34,8 +35,6 @@ import com.lagradost.shiro.utils.AppUtils.getCurrentActivity
 import com.lagradost.shiro.utils.AppUtils.loadPage
 import com.lagradost.shiro.utils.AppUtils.settingsManager
 import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
-import kotlinx.android.synthetic.main.fragment_library_edit_slug.*
-import kotlinx.android.synthetic.main.list_card_compact.view.*
 import java.util.*
 import kotlin.math.ceil
 import kotlin.math.sqrt
@@ -68,9 +67,9 @@ data class LibraryObject(
 class LibraryCardAdapter(var list: List<LibraryObject>) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return LibraryCardViewHolder(
-            LayoutInflater.from(parent.context).inflate(R.layout.list_card_compact, parent, false),
-        )
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.list_card_compact, parent, false)
+        com.lagradost.shiro.utils.UiStyle.restyle(view)
+        return LibraryCardViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -129,7 +128,7 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
                     coverHeight
                 )
             }
-            itemView.imageView.apply {
+            itemView.fv<android.widget.ImageView>(R.id.imageView).apply {
                 layoutParams = FrameLayout.LayoutParams(
                     ceil(coverHeight / sqrt(2.0)).toInt(),
                     coverHeight
@@ -141,19 +140,19 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
             )
             marginParams.setMargins(ceil(coverHeight / sqrt(2.0)).toInt(), 0, 0, 0)
 
-            itemView.text_holder.layoutParams = marginParams
+            itemView.fv<android.widget.LinearLayout>(R.id.text_holder).layoutParams = marginParams
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                itemView.backgroundCard.backgroundTintList = ColorStateList.valueOf(
+                itemView.fv<androidx.cardview.widget.CardView>(R.id.backgroundCard).backgroundTintList = ColorStateList.valueOf(
                     Cyanea.instance.backgroundColorDark
                 )
             }
 
-            itemView.backgroundCard.setOnClickListener {
+            itemView.fv<androidx.cardview.widget.CardView>(R.id.backgroundCard).setOnClickListener {
                 loadPage()
             }
 
-            itemView.imageText?.text = item.title
-            itemView.imageSubText?.visibility = VISIBLE
+            itemView.fv<android.widget.TextView>(R.id.imageText)?.text = item.title
+            itemView.fv<android.widget.TextView>(R.id.imageSubText)?.visibility = VISIBLE
 
             val statusColor = when (item.status) {
                 LibraryStatusType.Watching.value -> R.color.colorWatching
@@ -164,13 +163,13 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
                 else -> R.color.colorWatching
             }
 
-            itemView.episode_progress?.max = item.episodes
-            itemView.episode_progress?.progress = item.progress
-            /*episode_progress?.progressDrawable?.setColorFilter(
+            itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.episode_progress)?.max = item.episodes
+            itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.episode_progress)?.progress = item.progress
+            /*fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.episode_progress)?.progressDrawable?.setColorFilter(
                 ContextCompat.getColor(context, statusColor), android.graphics.PorterDuff.Mode.SRC_IN
             )*/
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                itemView.episode_progress?.progressTintList =
+                itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.episode_progress)?.progressTintList =
                     ColorStateList.valueOf(ContextCompat.getColor(context, statusColor))
             }
 
@@ -187,21 +186,21 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
             val episodeText =
                 "${item.progress}/${if (item.episodes != 0) item.episodes else "???"}"
 
-            itemView.imageTextSecond?.text = episodeText
-            itemView.imageSubText?.text = "${scoreText ?: ""}$separator${item.nextEpisode ?: ""}"
-            itemView.imageSubTextSecond?.text = seasonText
+            itemView.fv<android.widget.TextView>(R.id.imageTextSecond)?.text = episodeText
+            itemView.fv<android.widget.TextView>(R.id.imageSubText)?.text = "${scoreText ?: ""}$separator${item.nextEpisode ?: ""}"
+            itemView.fv<android.widget.TextView>(R.id.imageSubTextSecond)?.text = seasonText
             itemView.setOnClickListener {
                 loadPage()
             }
 
-            itemView.backgroundCard.setOnLongClickListener {
+            itemView.fv<androidx.cardview.widget.CardView>(R.id.backgroundCard).setOnLongClickListener {
                 val bottomSheetDialog = BottomSheetDialog(context, R.style.AppBottomSheetDialogTheme)
                 bottomSheetDialog.setContentView(R.layout.fragment_library_edit_slug)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    bottomSheetDialog.bottom_sheet_top_bar_slug.backgroundTintList =
+                    bottomSheetDialog.fv<androidx.cardview.widget.CardView>(R.id.bottom_sheet_top_bar_slug).backgroundTintList =
                         ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
                 }
-                bottomSheetDialog.slug_selector_root.background = ColorDrawable(Cyanea.instance.backgroundColor)
+                bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.slug_selector_root).background = ColorDrawable(Cyanea.instance.backgroundColor)
 
                 val slug: String? = context.getKey(
                     LIBRARY_PAGE_MAL_OVERRIDE_SLUG,
@@ -210,11 +209,11 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
                 )
 
                 slug?.let {
-                    bottomSheetDialog.slug_text_holder.editText?.setText(it)
+                    bottomSheetDialog.fv<com.google.android.material.textfield.TextInputLayout>(R.id.slug_text_holder).editText?.setText(it)
                 }
 
-                bottomSheetDialog.slug_save_btt.setOnClickListener {
-                    val id = bottomSheetDialog.slug_text_holder.editText?.text?.toString()
+                bottomSheetDialog.fv<com.google.android.material.button.MaterialButton>(R.id.slug_save_btt).setOnClickListener {
+                    val id = bottomSheetDialog.fv<com.google.android.material.textfield.TextInputLayout>(R.id.slug_text_holder).editText?.text?.toString()
                     if (id == "") {
                         context.removeKey(LIBRARY_PAGE_MAL_OVERRIDE_SLUG, item.id)
                     } else {
@@ -222,7 +221,7 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
                     }
                 }
 
-                bottomSheetDialog.copy_mal_id_btt.setOnClickListener {
+                bottomSheetDialog.fv<com.google.android.material.button.MaterialButton>(R.id.copy_mal_id_btt).setOnClickListener {
                     val clipboard: ClipboardManager? =
                         it.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
                     val clip = ClipData.newPlainText("Mal ID", item.id)
@@ -231,8 +230,8 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
                 }
 
                 item.idAnilist?.let { idAnilist ->
-                    bottomSheetDialog.copy_anilist_id_btt.visibility = VISIBLE
-                    bottomSheetDialog.copy_anilist_id_btt.setOnClickListener {
+                    bottomSheetDialog.fv<com.google.android.material.button.MaterialButton>(R.id.copy_anilist_id_btt).visibility = VISIBLE
+                    bottomSheetDialog.fv<com.google.android.material.button.MaterialButton>(R.id.copy_anilist_id_btt).setOnClickListener {
                         val clipboard: ClipboardManager? =
                             it.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
                         val clip = ClipData.newPlainText("Anilist ID", idAnilist)
@@ -244,8 +243,8 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
                 // Full expansion for TV
                 bottomSheetDialog.setOnShowListener {
                     normalSafeApiCall {
-                        BottomSheetBehavior.from(bottomSheetDialog.slug_selector_root.parent as View).peekHeight =
-                            bottomSheetDialog.slug_selector_root.height
+                        BottomSheetBehavior.from(bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.slug_selector_root).parent as View).peekHeight =
+                            bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.slug_selector_root).height
                     }
                 }
 
@@ -254,7 +253,7 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
                 return@setOnLongClickListener true
             }
 
-            /*itemView.imageView.setOnClickListener {
+            /*itemView.fv<android.widget.ImageView>(R.id.imageView).setOnClickListener {
                 getCurrentActivity()?.loadPage(item.id, item.title, true)
                 //activity?.loadPage(card.slug, card.name)
                 /*MainActivity.loadPage(card)*/
@@ -269,7 +268,7 @@ class LibraryCardAdapter(var list: List<LibraryObject>) :
                         .load(glideUrl)
                         .transition(DrawableTransitionOptions.withCrossFade(100))
                         .onlyRetrieveFromCache(savingData)
-                        .into(itemView.imageView)
+                        .into(itemView.fv<android.widget.ImageView>(R.id.imageView))
                 }
             }
         }

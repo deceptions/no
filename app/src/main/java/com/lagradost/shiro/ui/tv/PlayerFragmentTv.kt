@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.tv
+import com.lagradost.shiro.utils.fv
 
 /*
  * Copyright 2019 Google LLC
@@ -87,6 +88,7 @@ import com.lagradost.shiro.ui.tv.MainFragment.Companion.hasBeenInPlayer
 import com.lagradost.shiro.utils.*
 import com.lagradost.shiro.utils.AniListApi.Companion.getDataAboutId
 import com.lagradost.shiro.utils.AniListApi.Companion.postDataAboutId
+import com.lagradost.shiro.utils.integrations.TrackerSync
 import com.lagradost.shiro.utils.AppUtils.getCurrentActivity
 import com.lagradost.shiro.utils.AppUtils.getCurrentContext
 import com.lagradost.shiro.utils.AppUtils.getTextColor
@@ -99,11 +101,11 @@ import com.lagradost.shiro.utils.Coroutines.main
 import com.lagradost.shiro.utils.MALApi.Companion.getDataAboutMalId
 import com.lagradost.shiro.utils.MALApi.Companion.malStatusAsString
 import com.lagradost.shiro.utils.MALApi.Companion.setScoreRequest
-import com.lagradost.shiro.utils.ShiroApi.Companion.USER_AGENT
-import com.lagradost.shiro.utils.ShiroApi.Companion.fmod
-import com.lagradost.shiro.utils.ShiroApi.Companion.loadLinks
+import com.lagradost.shiro.utils.NekomoApi.Companion.USER_AGENT
+import com.lagradost.shiro.utils.NekomoApi.Companion.fmod
+import com.lagradost.shiro.utils.NekomoApi.Companion.loadLinks
+import com.lagradost.shiro.utils.mvvm.logError
 import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
-import kotlinx.android.synthetic.main.bottom_sheet.*
 import java.io.File
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
@@ -143,10 +145,10 @@ class PlayerFragmentTv : VideoSupportFragment() {
     private val settingsManager = AppUtils.settingsManager ?: (getCurrentContext() ?: context)?.let {
         PreferenceManager.getDefaultSharedPreferences(it)
     }
-    private val fastForwardTime = settingsManager!!.getInt("fast_forward_button_time", 10)
+    private val fastForwardTime = settingsManager?.getInt("fast_forward_button_time", 10) ?: 10
     private val fastForwardTimeMillis: Long = TimeUnit.SECONDS.toMillis(fastForwardTime.toLong())
-    private val autoPlayEnabled = settingsManager!!.getBoolean("autoplay_enabled", true)
-    private val skipFillers = settingsManager!!.getBoolean("skip_fillers", false)
+    private val autoPlayEnabled = settingsManager?.getBoolean("autoplay_enabled", true) ?: true
+    private val skipFillers = settingsManager?.getBoolean("skip_fillers", false) ?: false
 
     private val resizeModes = listOf(
         AppUtils.AspectRatioTV.RESIZE_MODE_FIT,
@@ -154,7 +156,7 @@ class PlayerFragmentTv : VideoSupportFragment() {
         AppUtils.AspectRatioTV.RESIZE_MODE_ZOOM,
         AppUtils.AspectRatioTV.RESIZE_MODE_4_3,
     )
-    private var resizeMode = (getCurrentContext() ?: context)?.getKey(RESIZE_MODE_KEY, 0) ?: 0
+    private var resizeMode = (((getCurrentContext() ?: context)?.getKey(RESIZE_MODE_KEY, 0) ?: 0)).coerceIn(resizeModes.indices)
 
     /*
     private val resizeModes = listOf(
@@ -249,7 +251,9 @@ class PlayerFragmentTv : VideoSupportFragment() {
             }
             adapter.add(actionResize)
 
-            if (data?.episodeIndex!! + 1 < data?.card?.episodes?.size!!) {
+            val currentEpisodeIndex = data?.episodeIndex
+            val totalEpisodes = data?.card?.episodes?.size
+            if (currentEpisodeIndex != null && totalEpisodes != null && currentEpisodeIndex + 1 < totalEpisodes) {
                 adapter.add(actionNextEpisode)
             }
             //adapter.add(actionClosedCaptions)
@@ -278,7 +282,7 @@ class PlayerFragmentTv : VideoSupportFragment() {
                             val bottomSheetDialog = BottomSheetDialog(activity, R.style.AppBottomSheetDialogTheme)
                             bottomSheetDialog.setContentView(R.layout.bottom_sheet)
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                                bottomSheetDialog.bottom_sheet_top_bar.backgroundTintList =
+                                bottomSheetDialog.fv<androidx.cardview.widget.CardView>(R.id.bottom_sheet_top_bar).backgroundTintList =
                                     ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
                             }
 
@@ -297,12 +301,12 @@ class PlayerFragmentTv : VideoSupportFragment() {
 
                                 bottomSheetDialog.dismiss()
                             }
-                            bottomSheetDialog.main_text?.text = "Source"
+                            bottomSheetDialog.fv<android.widget.TextView>(R.id.main_text)?.text = "Source"
                             // Full expansion for TV
                             bottomSheetDialog.setOnShowListener {
                                 normalSafeApiCall {
-                                    BottomSheetBehavior.from(bottomSheetDialog.bottom_sheet_root.parent as View).peekHeight =
-                                        bottomSheetDialog.bottom_sheet_root.height
+                                    BottomSheetBehavior.from(bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.bottom_sheet_root).parent as View).peekHeight =
+                                        bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.bottom_sheet_root).height
                                 }
                             }
                             bottomSheetDialog.show()
@@ -405,12 +409,17 @@ class PlayerFragmentTv : VideoSupportFragment() {
         val setPercentage: Float = (settingsManager?.getInt("completed_percentage", 80)?.toFloat() ?: 80F) / 100
         val saveHistory: Boolean = settingsManager?.getBoolean("save_history", true) ?: true
 
-        if (this::exoPlayer.isInitialized && setPercentage != 0.0f && saveHistory) {
+        val episodeIndex = data?.episodeIndex
+        if (this::exoPlayer.isInitialized && setPercentage != 0.0f && saveHistory && episodeIndex != null) {
             val currentPercentage = exoPlayer.currentPosition.toFloat() / exoPlayer.duration.toFloat()
-            if (currentPercentage > setPercentage && lastSyncedEpisode < data?.episodeIndex!!) {
-                lastSyncedEpisode = data?.episodeIndex!!
+            if (currentPercentage > setPercentage && lastSyncedEpisode < episodeIndex) {
+                lastSyncedEpisode = episodeIndex
                 thread {
-                    context?.updateProgress()
+                    try {
+                        context?.updateProgress()
+                    } catch (e: Exception) {
+                        logError(e)
+                    }
                 }
             } else {
                 if (data?.anilistID != null || data?.malID != null) handler.postDelayed(
@@ -427,6 +436,7 @@ class PlayerFragmentTv : VideoSupportFragment() {
     }
 
     private fun Context.updateProgress() {
+        val episodeIndex = data?.episodeIndex ?: return
         val hasAniList = getKey<String>(
             ANILIST_TOKEN_KEY,
             ANILIST_ACCOUNT_ID,
@@ -460,7 +470,7 @@ class PlayerFragmentTv : VideoSupportFragment() {
             type
         }
 
-        val currentEpisodeProgress = data?.episodeIndex!! + 1 + episodeOffset
+        val currentEpisodeProgress = episodeIndex + 1 + episodeOffset
 
         if (currentEpisodeProgress == holder?.episodes ?: data?.card?.episodes?.size?.plus(episodeOffset)
             && type.value != AniListApi.Companion.AniListStatusType.Completed.value
@@ -469,6 +479,12 @@ class PlayerFragmentTv : VideoSupportFragment() {
             type = AniListApi.Companion.AniListStatusType.Completed
         }
 
+
+        if (TrackerSync.anyConnected(this)) {
+            TrackerSync.pushAndNotify(
+                this, data?.malID, data?.anilistID, type.value, score, currentEpisodeProgress, monotonic = true
+            )
+        }
 
         if (progress < currentEpisodeProgress && holder ?: malHolder != null) {
             val anilistPost =
@@ -792,39 +808,13 @@ class PlayerFragmentTv : VideoSupportFragment() {
                         super.onVideoSizeChanged(videoSize)
                     }
 
-                    override fun onPlayerError(error: ExoPlaybackException) {
+                    override fun onPlayerError(error: PlaybackException) {
                         // Lets pray this doesn't spam Toasts :)
-                        when (error.type) {
-                            ExoPlaybackException.TYPE_SOURCE -> {
-                                if (currentUrl.url != "") {
-                                    Toast.makeText(
-                                        activity,
-                                        "Source error\n" + error.sourceException.message,
-                                        LENGTH_LONG
-                                    )
-                                        .show()
-                                }
-                            }
-                            ExoPlaybackException.TYPE_REMOTE -> {
-                                Toast.makeText(activity, "Remote error", LENGTH_LONG)
-                                    .show()
-                            }
-                            ExoPlaybackException.TYPE_RENDERER -> {
-                                Toast.makeText(
-                                    activity,
-                                    "Renderer error\n" + error.rendererException.message,
-                                    LENGTH_LONG
-                                )
-                                    .show()
-                            }
-                            ExoPlaybackException.TYPE_UNEXPECTED -> {
-                                Toast.makeText(
-                                    activity,
-                                    "Unexpected player error\n" + error.unexpectedException.message,
-                                    LENGTH_LONG
-                                ).show()
-                            }
-                        }
+                        Toast.makeText(
+                            activity,
+                            "Player error (${error.errorCodeName})\n" + (error.message ?: ""),
+                            LENGTH_LONG
+                        ).show()
                     }
                 })
 
@@ -841,8 +831,9 @@ class PlayerFragmentTv : VideoSupportFragment() {
         isLoadingNextEpisode = false
     }
 
-    private fun getCurrentEpisode(): ShiroApi.Companion.AnimePageNewEpisodes? {
-        return data?.card?.episodes?.getOrNull(data?.episodeIndex!!)//data?.card!!.cdnData.seasons.getOrNull(data?.seasonIndex!!)?.episodes?.get(data?.episodeIndex!!)
+    private fun getCurrentEpisode(): NekomoApi.Companion.AnimePageNewEpisodes? {
+        val episodeIndex = data?.episodeIndex ?: return null
+        return data?.card?.episodes?.getOrNull(episodeIndex)//data?.card!!.cdnData.seasons.getOrNull(data?.seasonIndex!!)?.episodes?.get(data?.episodeIndex!!)
     }
 
     private fun loadAndPlay() {
@@ -850,7 +841,7 @@ class PlayerFragmentTv : VideoSupportFragment() {
         thread {
             if (!(sources.first == data?.episodeIndex && data?.episodeIndex != null)) {
                 val episodes = getCurrentEpisode()?.sources?.let {
-                    mapper.readValue<List<ShiroApi.Companion.EpisodeObject?>?>(it)
+                    mapper.readValue<List<NekomoApi.Companion.EpisodeObject?>?>(it)
                 }
                 val videoId = episodes?.firstOrNull { it?.slug == "gogostream" }
                 videoId?.source?.let {
@@ -899,7 +890,7 @@ class PlayerFragmentTv : VideoSupportFragment() {
         super.onCreate(savedInstanceState)
         getCurrentContext()?.theme?.applyStyle(R.style.normalText, true)
         //playbackPosition = activity?.intent?.getSerializableExtra(DetailsActivityTV.PLAYERPOS) as? Long ?: 0L
-        //data = mapper.readValue<ShiroApi.AnimePageData>(dataString!!)
+        //data = mapper.readValue<NekomoApi.AnimePageData>(dataString!!)
         mediaSession = getCurrentContext()?.let {
             MediaSessionCompat(it, getString(R.string.app_name))
         } ?: MediaSessionCompat(requireContext(), getString(R.string.app_name))

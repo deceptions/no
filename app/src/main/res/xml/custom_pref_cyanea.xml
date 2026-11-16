@@ -69,6 +69,52 @@
             android:title="Hide the open website button"
             app:defaultValue="false"
     />
+    <ListPreference
+            android:icon="@drawable/ic_baseline_view_list_24"
+            app:key="ui_mode"
+            android:title="Interface mode"
+            android:summary="Classic keeps the original Nekomo look. Modern rounds the cards, spaces them out and adds subtle motion."
+            app:entries="@array/UiModes"
+            app:entryValues="@array/UiModeValues"
+            app:defaultValue="classic"
+            app:useSimpleSummaryProvider="true"
+    />
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_view_column_24"
+            android:title="Poster size (%)"
+            android:summary="Scales poster cards on the home page and in search results"
+            android:defaultValue="100"
+            android:key="poster_size"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="5"
+            android:max="150"
+            app:min="70"
+    >
+    </SeekBarPreference>
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_view_column_24"
+            android:title="Card corner radius (dp)"
+            android:summary="0 is square; Modern mode starts at 14"
+            android:defaultValue="6"
+            android:key="card_corner_dp"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="1"
+            android:max="24"
+            app:min="0"
+    >
+    </SeekBarPreference>
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_view_column_24"
+            android:title="Card spacing (dp)"
+            android:summary="Space between home page cards"
+            android:defaultValue="5"
+            android:key="card_spacing_dp"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="1"
+            android:max="16"
+            app:min="0"
+    >
+    </SeekBarPreference>
     <SwitchPreference
             android:icon="@drawable/ic_baseline_view_list_24"
             app:key="compact_search_enabled"
@@ -138,6 +184,18 @@
             app:min="60"
     >
     </SeekBarPreference>
+    <Preference
+            app:key="appearance_preset"
+            android:icon="@drawable/ic_baseline_view_column_24"
+            android:title="Card layout presets"
+            android:summary="Compact, Classic or Modern — applies a full look in one tap"
+    />
+    <Preference
+            app:key="appearance_reset"
+            android:icon="@drawable/ic_baseline_delete_outline_24"
+            android:title="Reset card layout"
+            android:summary="Interface mode, poster size, corners and spacing back to defaults"
+    />
 
 
 </androidx.preference.PreferenceScreen>

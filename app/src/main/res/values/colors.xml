@@ -10,21 +10,21 @@
     <color name="black_overlay_darker">#CC000000</color>
     <color name="video_ripple">#80FFFFFF</color>
 
-    <color name="colorPrimary">#d01110</color>
-    <color name="colorPrimaryDark">#b00d0c</color>
-    <color name="colorPrimaryDarker">#6A0908</color>
-    <color name="colorPrimaryMegaDark">#210303</color>
-    <color name="colorAccent">#ed2c2b</color>
+    <color name="colorPrimary">#7c3aed</color>
+    <color name="colorPrimaryDark">#4c1d95</color>
+    <color name="colorPrimaryDarker">#5a1630</color>
+    <color name="colorPrimaryMegaDark">#1a0710</color>
+    <color name="colorAccent">#a78bfa</color>
 
     <!-- Default theme -->
     <color name="textColor">#e6e6e6</color>
     <color name="textColorGray">#989898</color>
     <color name="textColorGrayWhite">#bababa</color>
-    <color name="darkBar">#121212</color>
-    <color name="darkBarLight">#303030</color>
+    <color name="darkBar">#150c20</color>
+    <color name="darkBarLight">#2a1b3d</color>
     <color name="darkBarTransparent">#C0121212</color>
-    <color name="backgroundLight">#232323</color>
-    <color name="background">#050505</color>
+    <color name="backgroundLight">#1d0f16</color>
+    <color name="background">#0d0714</color>
 
     <!-- Light theme -->
     <color name="lightTextColor">#191919</color>

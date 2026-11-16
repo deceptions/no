@@ -13,7 +13,7 @@ import com.lagradost.shiro.utils.AniListApi.Companion.getAnilistAnimeListSmart
 import com.lagradost.shiro.utils.MALApi
 import com.lagradost.shiro.utils.MALApi.Companion.convertToStatus
 import com.lagradost.shiro.utils.MALApi.Companion.getMalAnimeListSmart
-import me.xdrop.fuzzywuzzy.FuzzySearch
+import com.lagradost.shiro.utils.FuzzyMatch
 import java.text.SimpleDateFormat
 import kotlin.concurrent.thread
 
@@ -131,7 +131,7 @@ class LibraryViewModel : ViewModel() {
             }
             SEARCH -> {
                 if (searchText != null) {
-                    array.sortBy { -FuzzySearch.partialRatio(searchText.lowercase(), it.node.title.lowercase()) }
+                    array.sortBy { -FuzzyMatch.partialRatio(searchText.lowercase(), it.node.title.lowercase()) }
                 }
                 array.toList()
             }
@@ -184,7 +184,7 @@ class LibraryViewModel : ViewModel() {
             SEARCH -> {
                 if (searchText != null) {
                     array.sortBy {
-                        -FuzzySearch.partialRatio(
+                        -FuzzyMatch.partialRatio(
                             searchText.lowercase(),
                             (it.media.title.english ?: it.media.title.romaji ?: "").lowercase()
                         )

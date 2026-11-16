@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui
+import com.lagradost.shiro.utils.fv
 
 import android.annotation.SuppressLint
 import android.os.Bundle
@@ -12,8 +13,7 @@ import com.lagradost.shiro.R
 import com.lagradost.shiro.utils.AniListApi.Companion.authenticateLogin
 import com.lagradost.shiro.utils.Event
 import com.lagradost.shiro.utils.MALApi.Companion.authenticateMalLogin
-import com.lagradost.shiro.utils.ShiroApi.Companion.USER_AGENT
-import kotlinx.android.synthetic.main.fragment_web_view.*
+import com.lagradost.shiro.utils.NekomoApi.Companion.USER_AGENT
 
 private const val URL = "URL"
 
@@ -31,7 +31,7 @@ class WebViewFragment : Fragment() {
             url = it.getString(URL)
         }
         url?.let {
-            webView.webViewClient = object : WebViewClient() {
+            fv<android.webkit.WebView>(R.id.webView).webViewClient = object : WebViewClient() {
                 override fun shouldOverrideUrlLoading(view: WebView, url: String): Boolean {
                     if (url.startsWith("http://") || url.startsWith("https://")) return false
                     return try {
@@ -52,10 +52,10 @@ class WebViewFragment : Fragment() {
                     }
                 }
             }
-            webView.settings.domStorageEnabled = true
-            webView.settings.userAgentString = USER_AGENT
-            webView.settings.javaScriptEnabled = true
-            webView.loadUrl(it)
+            fv<android.webkit.WebView>(R.id.webView).settings.domStorageEnabled = true
+            fv<android.webkit.WebView>(R.id.webView).settings.userAgentString = USER_AGENT
+            fv<android.webkit.WebView>(R.id.webView).settings.javaScriptEnabled = true
+            fv<android.webkit.WebView>(R.id.webView).loadUrl(it)
 
         }
     }

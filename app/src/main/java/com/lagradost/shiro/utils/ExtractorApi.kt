@@ -1,6 +1,5 @@
 package com.lagradost.shiro.utils
 
-import com.lagradost.shiro.utils.extractors.*
 
 data class ExtractorLink(
     val name: String,
@@ -8,6 +7,8 @@ data class ExtractorLink(
     val referer: String,
     val quality: Int,
     val isM3u8: Boolean = false,
+    val isDash: Boolean = false,
+    val headers: Map<String, String>? = null,
 )
 
 enum class Qualities(var value: Int) {
@@ -28,16 +29,9 @@ fun getAndUnpack(string: String): String? {
     return packedText?.let { JsUnpacker(it).unpack() }
 }
 
-val APIS: Array<ExtractorApi> = arrayOf(
-    // AllProvider(),
-    Shiro(),
-    MultiQuality(),
-    Mp4Upload(),
-    StreamTape(),
-    MixDrop(),
-    XStreamCdn(),
-    StreamSB()
-)
+// Nekomo bundles no host extractors or streaming sources; everything playable comes from sources the
+// user installs (CloudStream extensions, Zangetsu sources, Aniyomi extensions).
+val APIS: Array<ExtractorApi> = arrayOf()
 
 /*val linKLoadingTimeout: Double
     get() {

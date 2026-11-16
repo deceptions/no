@@ -184,52 +184,43 @@
             android:title="Info"
     >
         <Preference
-                android:icon="@drawable/ic_baseline_payment_24"
-                android:title="Donate to ********"
-                app:summary="To help fund the site"
-        >
-            <intent android:action="android.intent.action.VIEW"
-                    android:data="https://ko-fi.com/shirois"/>
-
-        </Preference>
-        <Preference
-                android:icon="@drawable/ic_baseline_payment_24"
-                android:title="Donate to the App developers"
-                app:summary="If you have too much cash"
-        >
-            <intent android:action="android.intent.action.VIEW"
-                    android:data="https://ko-fi.com/lagradost"/>
-
-        </Preference>
-        <Preference
-                android:title="******** discord"
+                android:title="Nekomo Discord"
                 android:icon="@drawable/ic_baseline_discord_24"
-                app:summary="Join the Shiro community"
+                app:summary="Join the Nekomo community"
         >
             <intent android:action="android.intent.action.VIEW"
-                    android:data="https://discord.gg/shiro"/>
+                    android:data="https://discord.com/invite/E4Ezmgg7Ka"/>
 
         </Preference>
         <Preference
-                android:title="Github"
+                android:title="Nekomo Telegram"
+                android:icon="@drawable/ic_telegram"
+                app:summary="Announcements and chat"
+        >
+            <intent android:action="android.intent.action.VIEW"
+                    android:data="https://t.me/+zE96_asmLEdlMDZh"/>
+
+        </Preference>
+        <Preference
+                android:title="GitHub"
                 android:icon="@drawable/ic_github_logo"
                 app:summary="Submit issues and contribute to the app">
 
             <intent android:action="android.intent.action.VIEW"
-                    android:data="https://github.com/Blatzar/shiro-app/"/>
+                    android:data="https://github.com/Nekomo-App/neko-source"/>
 
         </Preference>
         <Preference
-                android:title="Light novel app by the same devs"
-                android:icon="@drawable/quick_novel_icon"
-                app:summary="https://github.com/LagradOst/QuickNovel">
+                android:title="Developer"
+                android:icon="@drawable/ic_baseline_code_24"
+                app:summary="marshmeadow — marshmeadow.netlify.app">
             <intent android:action="android.intent.action.VIEW"
-                    android:data="https://github.com/LagradOst/QuickNovel"/>
+                    android:data="https://marshmeadow.netlify.app/"/>
         </Preference>
         <Preference
-                android:title="Developers (to complain to)"
+                android:title="Previous developers"
                 android:icon="@drawable/ic_baseline_code_24"
-                app:summary="Lag#5744 &amp; Blue Fire#1471"
+                app:summary="Lag (LagradOst) &amp; Blue Fire (Blatzar) — original open-source project"
         />
     </PreferenceCategory>
 

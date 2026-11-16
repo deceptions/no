@@ -1,5 +1,6 @@
 package com.lagradost.shiro
 
+import com.lagradost.shiro.utils.AppIdentity
 import ANILIST_SHOULD_UPDATE_LIST
 import DataStore.setKey
 import MAL_SHOULD_UPDATE_LIST
@@ -9,6 +10,8 @@ import android.os.Build
 import androidx.appcompat.app.AppCompatDelegate
 import com.google.auto.service.AutoService
 import com.jaredrummler.cyanea.Cyanea
+import com.lagradost.shiro.utils.ErrorLogger
+import com.lagradost.shiro.utils.cs3.CsPluginManager
 import com.lagradost.shiro.utils.mvvm.logError
 import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
 import org.acra.ReportField
@@ -48,7 +51,9 @@ class CustomSenderFactory : ReportSenderFactory {
     }
 
     override fun enabled(config: CoreConfiguration): Boolean {
-        return true
+        // Disabled: the endpoint posts crash reports to the original Shiro
+        // developer's Google Form. Nekomo has no replacement sink yet.
+        return false
     }
 }
 
@@ -56,6 +61,10 @@ class AcraApplication : Application() {
     override fun attachBaseContext(base: Context?) {
         super.attachBaseContext(base)
         context = base
+
+        // Persist crashes/errors to app storage so they're visible from Settings even on a
+        // release build with no debugger attached (see utils/ErrorLogger.kt).
+        normalSafeApiCall { base?.let { ErrorLogger.init(it) } }
 
         normalSafeApiCall {
             base?.setKey(MAL_SHOULD_UPDATE_LIST, true)
@@ -67,7 +76,7 @@ class AcraApplication : Application() {
                 //core configuration:
                 buildConfigClass = BuildConfig::class.java
                 reportFormat = StringFormat.JSON
-                reportContent = arrayOf(
+                reportContent = listOf(
                     ReportField.BUILD_CONFIG, ReportField.USER_CRASH_DATE,
                     ReportField.ANDROID_VERSION, ReportField.PHONE_MODEL,
                     ReportField.STACK_TRACE, ReportField.LOGCAT
@@ -81,12 +90,39 @@ class AcraApplication : Application() {
 
             }
         }
+
+        normalSafeApiCall { ErrorLogger.installHandler() }
     }
 
     override fun onCreate() {
         super.onCreate()
         context = context ?: baseContext
-        Cyanea.init(this, resources)
+        normalSafeApiCall { Cyanea.init(this, resources) }
+        // CloudStream extension subsystem: injects our Context into the vendored
+        // cloudstream3 classes and loads installed .cs3 plugins on a bg thread.
+        // Must run here (not attachBaseContext) because applicationContext is null until now.
+        // Screenshots, screen recording and recents thumbnails are blocked in every screen of the app
+        registerActivityLifecycleCallbacks(object : android.app.Application.ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: android.app.Activity, savedInstanceState: android.os.Bundle?) {
+                com.lagradost.shiro.utils.CapturePolicy.apply(activity)
+            }
+            override fun onActivityStarted(activity: android.app.Activity) {}
+            override fun onActivityResumed(activity: android.app.Activity) { com.lagradost.shiro.utils.CapturePolicy.apply(activity); AppIdentity.applyTaskDescription(activity) }
+            override fun onActivityPaused(activity: android.app.Activity) {}
+            override fun onActivityStopped(activity: android.app.Activity) {}
+            override fun onActivitySaveInstanceState(activity: android.app.Activity, outState: android.os.Bundle) {}
+            override fun onActivityDestroyed(activity: android.app.Activity) {}
+        })
+        normalSafeApiCall { CsPluginManager.init(this) }
+        // Optional automatic updates for installed script/plugin sources (never APK extensions)
+        // New-episode notifications for subscribed shows (no-ops while the setting is off)
+        normalSafeApiCall { com.lagradost.shiro.utils.NewEpisodeWorker.schedule(this) }
+        normalSafeApiCall {
+            com.lagradost.shiro.utils.repo.ExtensionUpdater.schedule(this)
+            android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                kotlin.concurrent.thread { com.lagradost.shiro.utils.repo.ExtensionUpdater.runAuto(this) }
+            }, 30_000)
+        }
         AppCompatDelegate.setCompatVectorFromResourcesEnabled(true)
 //        normalSafeApiCall {
 //            // Cleaning up update folder

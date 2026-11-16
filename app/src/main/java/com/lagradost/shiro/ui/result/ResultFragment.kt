@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.result
+import com.lagradost.shiro.utils.fv
 
 import ANILIST_TOKEN_KEY
 import BOOKMARK_KEY
@@ -50,11 +51,10 @@ import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.android.gms.cast.framework.CastButtonFactory
 import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.cast.framework.CastState
+import com.google.android.gms.cast.framework.CastStateListener
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
 import com.jaredrummler.cyanea.Cyanea
 import com.lagradost.shiro.R
 import com.lagradost.shiro.ui.BookmarkedTitle
@@ -67,6 +67,7 @@ import com.lagradost.shiro.utils.*
 import com.lagradost.shiro.utils.AniListApi.Companion.authenticateAniList
 import com.lagradost.shiro.utils.AniListApi.Companion.fromIntToAnimeStatus
 import com.lagradost.shiro.utils.AniListApi.Companion.getShowId
+import com.lagradost.shiro.utils.AniListApi.Companion.postDataAboutId
 import com.lagradost.shiro.utils.AniListApi.Companion.secondsToReadable
 import com.lagradost.shiro.utils.AppUtils.castEpisode
 import com.lagradost.shiro.utils.AppUtils.dubbify
@@ -77,6 +78,8 @@ import com.lagradost.shiro.utils.AppUtils.getTextColor
 import com.lagradost.shiro.utils.AppUtils.getViewKey
 import com.lagradost.shiro.utils.AppUtils.getViewPosDur
 import com.lagradost.shiro.utils.AppUtils.guaranteedContext
+import com.lagradost.shiro.utils.AppUtils.loadPage
+import com.lagradost.shiro.utils.mvvm.logError
 import com.lagradost.shiro.utils.AppUtils.hideKeyboard
 import com.lagradost.shiro.utils.AppUtils.isCastApiAvailable
 import com.lagradost.shiro.utils.AppUtils.loadPlayer
@@ -88,17 +91,13 @@ import com.lagradost.shiro.utils.AppUtils.showNavigation
 import com.lagradost.shiro.utils.AppUtils.transparentStatusAndNavigation
 import com.lagradost.shiro.utils.Coroutines.main
 import com.lagradost.shiro.utils.MALApi.Companion.authenticateMAL
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFav
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFullUrlCdn
-import com.lagradost.shiro.utils.ShiroApi.Companion.getSubbed
-import com.lagradost.shiro.utils.ShiroApi.Companion.getVideoLink
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFav
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFullUrlCdn
+import com.lagradost.shiro.utils.NekomoApi.Companion.getSubbed
+import com.lagradost.shiro.utils.NekomoApi.Companion.getVideoLink
 import com.lagradost.shiro.utils.mvvm.Resource
 import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
 import com.lagradost.shiro.utils.mvvm.safeApiCall
-import kotlinx.android.synthetic.main.bottom_sheet.*
-import kotlinx.android.synthetic.main.fragment_results_2.*
-import kotlinx.android.synthetic.main.fragment_results_edit_mal_id.*
-import kotlinx.android.synthetic.main.fragment_results_sync_page.*
 import kotlinx.coroutines.Job
 import java.util.*
 import kotlin.concurrent.schedule
@@ -163,9 +162,14 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        relatedScrollView?.adapter?.notifyDataSetChanged()
-        recommendationsScrollView?.adapter?.notifyDataSetChanged()
+        fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.relatedScrollView)?.adapter?.notifyDataSetChanged()
+        fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.recommendationsScrollView)?.adapter?.notifyDataSetChanged()
         super.onConfigurationChanged(newConfig)
+        // The page height is pinned to the screen height when it loads; re-measure after rotating so it never stays at the old height
+        view?.let { v ->
+            v.layoutParams = v.layoutParams?.apply { height = ViewGroup.LayoutParams.MATCH_PARENT }
+            v.post { v.layoutParams = v.layoutParams?.apply { height = v.rootView?.height ?: height } }
+        }
     }
 
 
@@ -190,22 +194,399 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         isInResults = true
     }
 
-    private fun onDataLoaded(data: ShiroApi.Companion.AnimePageNewData?) {
+    /**
+     * Lets the user pick where this title is streamed from: the built-in catalogue or any installed
+     * extension provider (CloudStream etc.). The title is searched in the chosen source and the
+     * matching entry opened, replacing this page.
+     */
+    private fun showSourceChooser() {
+        val ctx = context ?: return
+        val anime = resultViewModel?.data?.value?.anime
+        val title = (anime?.title_english?.takeIf { it.isNotBlank() && !com.lagradost.shiro.utils.isExtensionSlug(anime.slug) }
+            ?: anime?.title) ?: return
+        val currentSlug = anime?.slug ?: ""
+        thread {
+            val providers = try {
+                com.lagradost.shiro.utils.cs3.CsPluginManager.providers().map { it.name }.distinct()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            val zgSources = try {
+                com.lagradost.shiro.utils.zg.ZangetsuManager.enabledSources(ctx)
+            } catch (e: Exception) {
+                emptyList()
+            }
+            val ayChoices = try {
+                com.lagradost.shiro.utils.aniyomi.AniyomiBridge.sourceChoices()
+            } catch (e: Exception) {
+                emptyList()
+            }
+            main {
+                // (label, key): key null = default, "cs:<name>" = CloudStream provider, "zg:<id>" = Zangetsu source
+                val health = com.lagradost.shiro.utils.SourceHealth
+                val entries: List<Pair<String, String?>> = listOf("AniList info (no streams)" to null) +
+                        providers.map { health.label(it, "cs:$it") to "cs:$it" } +
+                        zgSources.map { health.label("Zangetsu · ${it.name}", "zg:${it.id}") to "zg:${it.id}" } +
+                        ayChoices.map { health.label("Aniyomi · ${it.first}", "ay:${it.second}") to "ay:${it.second}" }
+                val currentKey = com.lagradost.shiro.utils.cs3.CsBridge.parseSlug(currentSlug)?.first?.let { "cs:$it" }
+                    ?: com.lagradost.shiro.utils.zg.ZangetsuBridge.parseSlug(currentSlug)?.first?.let { "zg:$it" }
+                    ?: com.lagradost.shiro.utils.aniyomi.AniyomiBridge.parseSlug(currentSlug)?.first?.let { "ay:$it" }
+                val checked = entries.indexOfFirst { it.second == currentKey }.takeIf { it >= 0 } ?: 0
+                AlertDialog.Builder(ctx, R.style.AlertDialogCustom)
+                    .setTitle("Choose source")
+                    .setSingleChoiceItems(entries.map { it.first }.toTypedArray(), checked) { dialog, which ->
+                        dialog.dismiss()
+                        searchSource(entries[which].second, entries[which].first, title)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .apply {
+                        if (entries.size == 1) setMessage(
+                            if (com.lagradost.shiro.utils.cs3.CsPluginManager.getInstalled(ctx).isNotEmpty() || com.lagradost.shiro.utils.zg.ZangetsuManager.getInstalled(ctx).isNotEmpty())
+                                "Your installed sources are hidden by a content filter. Turn on \"Show movies and TV shows\" (or the 18+ option) in Settings → General to use them."
+                            else "No extensions or sources installed. Add them in Settings → Extensions."
+                        )
+                    }
+                    .show()
+            }
+        }
+    }
+
+    private fun metaTitle(): String? {
+        val anime = resultViewModel?.data?.value?.anime
+        return (anime?.title_english?.takeIf { it.isNotBlank() && !com.lagradost.shiro.utils.isExtensionSlug(anime.slug) } ?: anime?.title)
+    }
+
+    private fun currentSourceKey(slug: String): String? =
+        com.lagradost.shiro.utils.cs3.CsBridge.parseSlug(slug)?.first?.let { "cs:$it" }
+            ?: com.lagradost.shiro.utils.zg.ZangetsuBridge.parseSlug(slug)?.first?.let { "zg:$it" }
+            ?: com.lagradost.shiro.utils.aniyomi.AniyomiBridge.parseSlug(slug)?.first?.let { "ay:$it" }
+
+    /**
+     * Sources dropdown: the user's preferred source (default) and every other installed source or extension.
+     * Picking one makes it the new default and opens this title in it. Hidden when nothing is installed.
+     */
+    private fun setupSourceDropdown(data: NekomoApi.Companion.AnimePageNewData) {
+        val ctx = context ?: return
+        val row = fv<View>(R.id.source_row)
+        val spinner = fv<android.widget.Spinner>(R.id.source_spinner)
+        val slug = data.anime.slug
+        thread {
+            val cs = try { com.lagradost.shiro.utils.cs3.CsPluginManager.providers().map { it.name }.distinct() } catch (e: Exception) { emptyList() }
+            val zg = try { com.lagradost.shiro.utils.zg.ZangetsuManager.enabledSources(ctx) } catch (e: Exception) { emptyList() }
+            val ay = try { com.lagradost.shiro.utils.aniyomi.AniyomiBridge.sourceChoices() } catch (e: Exception) { emptyList() }
+            main {
+                val entries: List<Pair<String, String?>> = listOf("Info only (no streams)" to null) +
+                        cs.map { it to "cs:$it" } + zg.map { "Zangetsu · ${it.name}" to "zg:${it.id}" } + ay.map { "Aniyomi · ${it.first}" to "ay:${it.second}" }
+                if (entries.size == 1) {
+                    row.visibility = GONE
+                    return@main
+                }
+                val pref = com.lagradost.shiro.utils.PreferredSource.get(ctx)
+                val current = currentSourceKey(slug)
+                val labels = entries.map { (l, k) ->
+                    val tagged = l + if (k != null && k == pref) "  ★ default" else ""
+                    com.lagradost.shiro.utils.SourceHealth.label(tagged, k ?: "")
+                }
+                spinner.adapter = android.widget.ArrayAdapter(ctx, android.R.layout.simple_spinner_dropdown_item, labels)
+                val selected = entries.indexOfFirst { it.second != null && it.second == current }.takeIf { it >= 0 }
+                    ?: entries.indexOfFirst { it.second != null && it.second == pref }.takeIf { it >= 0 } ?: 0
+                spinner.setSelection(selected, false)
+                row.visibility = VISIBLE
+                spinner.onItemSelectedListener = object : android.widget.AdapterView.OnItemSelectedListener {
+                    override fun onNothingSelected(parent: android.widget.AdapterView<*>?) {}
+                    override fun onItemSelected(parent: android.widget.AdapterView<*>?, view: View?, position: Int, id: Long) {
+                        val (label, key) = entries[position]
+                        if (key == null || position == selected) return
+                        com.lagradost.shiro.utils.PreferredSource.set(ctx, key)
+                        if (key != current) metaTitle()?.let { searchSource(key, label, it) }
+                    }
+                }
+            }
+        }
+    }
+
+    /** Tapping a metadata-only episode: play it through a source, or just track it. */
+    private fun showPlaySourcePicker(data: NekomoApi.Companion.AnimePageNewData, index: Int) {
+        val ctx = context ?: return
+        val all = com.lagradost.shiro.utils.SourcePlayback.installed(ctx)
+        if (all.isEmpty()) {
+            Toast.makeText(ctx, "No sources installed. Add one in Settings > Extensions.", Toast.LENGTH_LONG).show()
+            return
+        }
+        val def = com.lagradost.shiro.utils.PreferredSource.get(ctx)
+        AlertDialog.Builder(ctx, R.style.AlertDialogCustom)
+            .setTitle("Stream episode ${index + 1} with")
+            .setItems(all.map { com.lagradost.shiro.utils.SourceHealth.label(it.label + if (it.key == def) "  ★ default" else "", it.key) }.toTypedArray()) { _, which ->
+                playViaSource(data, index, all[which].key)
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /**
+     * Metadata episode -> installed source: finds the title in the source, matches the episode number and opens the
+     * player on it. Every failure is explained (missing source, incompatible extension, nothing found, no such episode).
+     */
+    private fun playViaSource(data: NekomoApi.Companion.AnimePageNewData, index: Int, key: String, chosenExtSlug: String? = null) {
+        val ctx = context ?: return
+        val anime = data.anime
+        val label = com.lagradost.shiro.utils.SourcePlayback.label(ctx, key)
+        val titles = listOfNotNull(anime.title_english, anime.title, anime.native_title.takeIf { it.isNotBlank() })
+        val epNumber = data.episodes.getOrNull(index)?.episode?.toIntOrNull() ?: (index + 1)
+        val loading = AlertDialog.Builder(ctx, R.style.AlertDialogCustomTransparent)
+            .setView(layoutInflater.inflate(R.layout.dialog_loading, null)).create()
+        loading.show()
+        Toast.makeText(ctx, "Finding episode $epNumber in $label…", Toast.LENGTH_SHORT).show()
+        thread {
+            val outcome = try {
+                com.lagradost.shiro.utils.SourcePlayback.resolveAuto(ctx, anime.slug, titles, epNumber, key, chosenExtSlug)
+            } catch (t: Throwable) {
+                logError(t)
+                com.lagradost.shiro.utils.SourcePlayback.Outcome.Problem("$label failed unexpectedly (${t.message ?: t.javaClass.simpleName}). Try another source.")
+            }
+            main {
+                normalSafeApiCall { loading.dismiss() }
+                when (outcome) {
+                    is com.lagradost.shiro.utils.SourcePlayback.Outcome.Found -> {
+                        if (outcome.sourceLabel != label) Toast.makeText(ctx, "$label didn't answer, playing via ${outcome.sourceLabel}", Toast.LENGTH_LONG).show()
+                        val alId = Regex("^al(\\d+)$").find(anime.slug)?.groupValues?.get(1)?.toIntOrNull()
+                        val malId = Regex("^mal(\\d+)$").find(anime.slug)?.groupValues?.get(1)?.toIntOrNull()
+                            ?: runCatching { mapper.readTree(anime.ids).path("mal").asText(null)?.toIntOrNull() }.getOrNull()
+                        com.lagradost.shiro.utils.SourcePlayback.link(ctx, outcome.extSlug, anime.slug, anime.title, anime.poster, data.episodes.size, index - outcome.index)
+                        activity?.loadPlayer(outcome.index, 0L, outcome.page, alId, malId, null)
+                    }
+                    is com.lagradost.shiro.utils.SourcePlayback.Outcome.PickMatch ->
+                        AlertDialog.Builder(guaranteedContext(context), R.style.AlertDialogCustom)
+                            .setTitle("${outcome.sourceLabel}: which one is \"${anime.title}\"?")
+                            .setItems(outcome.hits.map { it.title }.toTypedArray()) { _, which ->
+                                playViaSource(data, index, key, outcome.hits[which].slug)
+                            }
+                            .setNegativeButton("Cancel", null)
+                            .show()
+                    is com.lagradost.shiro.utils.SourcePlayback.Outcome.Problem ->
+                        AlertDialog.Builder(guaranteedContext(context), R.style.AlertDialogCustom)
+                            .setTitle("Can't play with $label")
+                            .setMessage(outcome.message)
+                            .setPositiveButton("Choose another source") { _, _ -> showPlaySourcePicker(data, index) }
+                            .setNegativeButton("Close", null)
+                            .show()
+                }
+            }
+        }
+    }
+
+    private fun showMetaEpisodeMenu(data: NekomoApi.Companion.AnimePageNewData, index: Int, longPress: Boolean = false) {
+        val ctx = context ?: return
+        // A plain tap streams straight away through the default source; a long press opens the full menu
+        val defaultKey = com.lagradost.shiro.utils.SourcePlayback.defaultKey(ctx)
+        if (!longPress && defaultKey != null) {
+            playViaSource(data, index, defaultKey)
+            return
+        }
+        val slug = data.anime.slug
+        val total = data.episodes.size
+        val watched = com.lagradost.shiro.utils.Tracker.isWatched(ctx, slug, index)
+        val epTitle = data.episodes.getOrNull(index)?.title ?: "Episode ${index + 1}"
+        val pref = com.lagradost.shiro.utils.PreferredSource.get(ctx)
+        val options = ArrayList<Pair<String, () -> Unit>>()
+
+        if (com.lagradost.shiro.utils.SourcePlayback.installed(ctx).isNotEmpty()) {
+            if (defaultKey != null) options.add("Play with ${com.lagradost.shiro.utils.SourcePlayback.label(ctx, defaultKey)}" to { playViaSource(data, index, defaultKey) })
+            options.add((if (defaultKey != null) "Play with another source…" else "Choose a source to play…") to { showPlaySourcePicker(data, index) })
+        } else {
+            options.add("How to add a source" to { activity?.openBrowser(getString(R.string.link_sources_guide)) })
+        }
+
+        fun mark(from: Int, to: Int, value: Boolean) {
+            val ok = com.lagradost.shiro.utils.Tracker.mark(ctx, slug, data.anime.title, data.anime.poster, total, from, to, value)
+            if (!ok) {
+                Toast.makeText(ctx, "Incognito mode is on, so progress is not saved.", Toast.LENGTH_LONG).show()
+                return
+            }
+            (fv<RecyclerView>(R.id.episodes_res_view)?.adapter as? MasterEpisodeAdapter)?.notifyDataSetChanged()
+            val alId = Regex("^al(\\d+)$").find(slug)?.groupValues?.get(1)?.toIntOrNull()
+            val progress = com.lagradost.shiro.utils.Tracker.progress(ctx, slug, total)
+            if (alId != null && hasAniList) thread {
+                val status = if (total > 0 && progress >= total) AniListApi.Companion.AniListStatusType.Completed else AniListApi.Companion.AniListStatusType.Watching
+                ctx.postDataAboutId(alId, status, 0, progress)
+            }
+            Toast.makeText(ctx, if (value) "Marked as watched" else "Marked as unwatched", Toast.LENGTH_SHORT).show()
+        }
+
+        options.add((if (watched) "Mark as unwatched" else "Mark as watched") to { mark(index, index, !watched) })
+        if (index > 0) options.add("Mark all up to here as watched" to { mark(0, index, true) })
+
+        AlertDialog.Builder(ctx, R.style.AlertDialogCustom)
+            .setTitle(epTitle)
+            .setItems(options.map { it.first }.toTypedArray()) { _, which -> options[which].second() }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    /** Globe button: switch sub/dub when both exist, and open this title on the web (AniList, MyAnimeList, ...). */
+    private fun showGlobeMenu() {
+        val ctx = context ?: return
+        val data = resultViewModel?.data?.value ?: return
+        val slug = data.anime.slug
+        val options = ArrayList<Pair<String, () -> Unit>>()
+        if (resultViewModel?.hasLoadedOther?.value == true) options.add("Switch between sub and dub" to { resultViewModel?.swapData() })
+
+        val al = Regex("^al(\\d+)$").find(slug)?.groupValues?.get(1) ?: resultViewModel?.totalAniListId?.value?.toString()
+        val mal = Regex("^mal(\\d+)$").find(slug)?.groupValues?.get(1)
+            ?: runCatching { mapper.readTree(data.anime.ids).path("mal").asText(null)?.takeIf { it != "null" } }.getOrNull()
+            ?: resultViewModel?.totalMalId?.value?.toString()
+        if (al != null) options.add("Open on AniList" to { activity?.openBrowser("https://anilist.co/anime/$al") })
+        if (mal != null) options.add("Open on MyAnimeList" to { activity?.openBrowser("https://myanimelist.net/anime/$mal") })
+        Regex("^kt(\\d+)$").find(slug)?.groupValues?.get(1)?.let { id -> options.add("Open on Kitsu" to { activity?.openBrowser("https://kitsu.app/anime/$id") }) }
+        Regex("^tvm(\\d+)$").find(slug)?.groupValues?.get(1)?.let { id -> options.add("Open on TVMaze" to { activity?.openBrowser("https://www.tvmaze.com/shows/$id") }) }
+        Regex("^tmm(\\d+)$").find(slug)?.groupValues?.get(1)?.let { id -> options.add("Open on TMDB" to { activity?.openBrowser("https://www.themoviedb.org/movie/$id") }) }
+        Regex("^tmt(\\d+)$").find(slug)?.groupValues?.get(1)?.let { id -> options.add("Open on TMDB" to { activity?.openBrowser("https://www.themoviedb.org/tv/$id") }) }
+        if (options.isEmpty()) {
+            Toast.makeText(ctx, "No web page is available for this title.", Toast.LENGTH_SHORT).show()
+            return
+        }
+        AlertDialog.Builder(ctx, R.style.AlertDialogCustom)
+            .setTitle("Language and web")
+            .setItems(options.map { it.first }.toTypedArray()) { _, which -> options[which].second() }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun searchSource(key: String?, label: String, title: String) {
+        val ctx = context ?: return
+        val providerName = if (key == null) null else label
+        Toast.makeText(ctx, "Searching ${providerName ?: "default source"}…", Toast.LENGTH_SHORT).show()
+        thread {
+            val hits: List<Pair<String, String>> = try {
+                when {
+                    key == null ->
+                        com.lagradost.shiro.utils.LiveApi.search(title, null).orEmpty()
+                            .filter {
+                                !com.lagradost.shiro.utils.cs3.CsBridge.isCs3Slug(it.slug) &&
+                                        !com.lagradost.shiro.utils.zg.ZangetsuBridge.isZgSlug(it.slug) &&
+                                        !com.lagradost.shiro.utils.aniyomi.AniyomiBridge.isAySlug(it.slug)
+                            }
+                            .map { (it.title_english?.takeIf { e -> e.isNotBlank() } ?: it.title) to it.slug }
+                    key.startsWith("ay:") ->
+                        com.lagradost.shiro.utils.aniyomi.AniyomiBridge.searchBySource(key.removePrefix("ay:").toLong(), title)
+                            .map { it.title to it.slug }
+                    key.startsWith("zg:") ->
+                        com.lagradost.shiro.utils.zg.ZangetsuBridge.searchBySource(key.removePrefix("zg:"), title)
+                            .map { it.title to it.slug }
+                    else ->
+                        com.lagradost.shiro.utils.cs3.CsBridge.searchByProvider(key.removePrefix("cs:"), title)
+                            .map { it.title to it.slug }
+                }
+            } catch (e: Exception) {
+                logError(e)
+                emptyList()
+            }
+            main {
+                if (hits.isEmpty()) {
+                    Toast.makeText(context, "\"$title\" was not found in ${providerName ?: "the default source"}", Toast.LENGTH_LONG).show()
+                    return@main
+                }
+                val labels = hits.map { it.first }.toTypedArray()
+                AlertDialog.Builder(guaranteedContext(context), R.style.AlertDialogCustom)
+                    .setTitle("${providerName ?: "Default"}: pick a match")
+                    .setItems(labels) { _, which ->
+                        val (name, slug) = hits[which]
+                        activity?.onBackPressed()
+                        activity?.loadPage(slug, name)
+                    }
+                    .setNegativeButton("Cancel", null)
+                    .show()
+            }
+        }
+    }
+
+    /** Genres arrive either as a JSON array or as a plain comma-separated string. */
+    private fun parseGenres(raw: String?): List<String> {
+        val t = raw?.trim().orEmpty()
+        if (t.isEmpty()) return emptyList()
+        return if (t.startsWith("[")) runCatching { mapper.readValue<List<String>>(t) }.getOrDefault(emptyList())
+        else t.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+    }
+
+    private val loadHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var loadFailed = false
+
+    /** Loading screen: the title being opened plus a status line that explains what is happening (and when it is slow). */
+    private fun startLoadingStatus() {
+        loadFailed = false
+        val name = arguments?.getString(NAME)
+        fv<android.widget.TextView>(R.id.loading_title)?.text = name?.takeIf { it.isNotBlank() } ?: ""
+        fv<View>(R.id.loading_actions)?.visibility = GONE
+        fv<View>(R.id.main_load)?.visibility = VISIBLE
+        fv<android.widget.TextView>(R.id.loading_status)?.text = "Loading details…"
+        loadHandler.removeCallbacksAndMessages(null)
+        loadHandler.postDelayed({ fv<android.widget.TextView>(R.id.loading_status)?.text = "Fetching artwork and episodes…" }, 3000)
+        loadHandler.postDelayed({
+            fv<android.widget.TextView>(R.id.loading_status)?.text = "Still working. The metadata service is slow right now; a backup is used automatically if needed."
+        }, 9000)
+        loadHandler.postDelayed({ showLoadError("This is taking too long. Check your connection and try again.") }, 25000)
+        fv<android.widget.Button>(R.id.loading_retry)?.setOnClickListener { retryLoad() }
+        fv<android.widget.Button>(R.id.loading_back)?.setOnClickListener { activity?.onBackPressed() }
+    }
+
+    private fun showLoadError(message: String) {
+        loadHandler.removeCallbacksAndMessages(null)
+        loadFailed = true
+        fv<View>(R.id.main_load)?.visibility = GONE
+        fv<android.widget.TextView>(R.id.loading_status)?.text = message
+        fv<View>(R.id.loading_actions)?.visibility = VISIBLE
+        fv<android.widget.FrameLayout>(R.id.loading_overlay)?.alpha = 1f
+        fv<android.widget.FrameLayout>(R.id.loading_overlay)?.apply { visibility = VISIBLE; isClickable = true }
+    }
+
+    private fun retryLoad() {
+        val slug = arguments?.getString(SLUG) ?: return
+        val name = arguments?.getString(NAME) ?: slug
+        val act = activity ?: return
+        act.onBackPressed()
+        act.window.decorView.postDelayed({ act.loadPage(slug, name) }, 250)
+    }
+
+    private fun onDataLoaded(data: NekomoApi.Companion.AnimePageNewData?) {
         episodeOffset = if (data?.episodes?.filter { it.episode == "0" }.isNullOrEmpty()) 0 else -1
 
         main {
             if (data == null) {
-                Toast.makeText(activity, "Error loading anime page!", Toast.LENGTH_LONG).show()
-                activity?.onBackPressed()
+                showLoadError("Couldn't load this title. It may be unavailable, or your connection or the metadata service is down.")
                 return@main
             }
+            loadHandler.removeCallbacksAndMessages(null)
             val fadeAnimation = AlphaAnimation(1f, 0f)
             fadeAnimation.duration = 100
             fadeAnimation.isFillEnabled = true
             fadeAnimation.fillAfter = true
-            loading_overlay?.startAnimation(fadeAnimation)
-            open_website_btt?.isEnabled = false
+            fv<android.widget.FrameLayout>(R.id.loading_overlay)?.startAnimation(fadeAnimation)
+            fv<android.widget.FrameLayout>(R.id.loading_overlay)?.postDelayed({
+                // fully remove the overlay so it can never block scrolling or taps on the page underneath
+                fv<android.widget.FrameLayout>(R.id.loading_overlay)?.apply { clearAnimation(); visibility = GONE; isClickable = false }
+            }, 150)
+            fv<android.widget.Button>(R.id.open_website_btt)?.isEnabled = false
             loadSeason()
+            // Nekomo bundles no streaming source: an AniList title has no episodes until the user
+            // picks one of the sources they installed themselves.
+            val needsSource = data.episodes.none { it.ext != "meta" } && !com.lagradost.shiro.utils.isExtensionSlug(data.anime.slug)
+            setupSourceDropdown(data)
+            fv<android.widget.TextView>(R.id.trailer_btt)?.apply {
+                val token = data.anime.trailer
+                visibility = if (token.isNotBlank() && com.lagradost.shiro.utils.Trailers.webUrl(token) != null) VISIBLE else GONE
+                setOnClickListener { activity?.let { com.lagradost.shiro.utils.Trailers.show(it, data.anime.title, token) } }
+            }
+            fv<android.widget.TextView>(R.id.source_hint)?.apply {
+                visibility = if (needsSource) VISIBLE else GONE
+                val hasEpisodes = data.episodes.isNotEmpty()
+                val hasSources = com.lagradost.shiro.utils.SourceState.hasAny(context)
+                text = when {
+                    hasEpisodes && hasSources -> "Tap an episode to play it or mark it watched. To stream, pick a source in the dropdown or tap here."
+                    hasEpisodes -> "Tracker mode: tap an episode to mark it watched. Add a source in Settings > Extensions if you also want to stream."
+                    else -> "No episodes yet. Tap here (or the cloud icon) to find this title in the sources you installed."
+                }
+                setOnClickListener { showSourceChooser() }
+            }
 
             data class IdObject(
                 @JsonProperty("mal") val mal: String?,
@@ -214,7 +595,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             if (!hasLoadedAnilist && (hasAniList || hasMAL)) {
                 thread {
                     hasLoadedAnilist = true
-                    val idMal = mapper.readValue<IdObject?>(data.anime.ids)?.mal
+                    val idMal = data.anime.ids?.takeIf { it.isNotBlank() }?.let { runCatching { mapper.readValue<IdObject?>(it) }.getOrNull() }?.mal
 
                     anilistPage =
                         getShowId(idMal, data.anime.title, data.anime.release_year?.toIntOrNull())
@@ -227,8 +608,9 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             thread {
                 Timer().schedule(500) {
                     activity?.runOnUiThread {
-                        loading_overlay?.alpha = 0f
-                        open_website_btt?.isEnabled = false
+                        fv<android.widget.FrameLayout>(R.id.loading_overlay)?.alpha = 0f
+                        fv<android.widget.FrameLayout>(R.id.loading_overlay)?.visibility = GONE
+                        fv<android.widget.Button>(R.id.open_website_btt)?.isEnabled = false
                     }
                 }
             }
@@ -242,12 +624,12 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 @JsonProperty("youtube") val youtube: String?,
             )
             normalSafeApiCall {
-                val youtubeId = mapper.readValue<List<TrailerObject?>?>(data.anime.trailer)
+                val youtubeId = data.anime.trailer?.takeIf { it.isNotBlank() }?.let { runCatching { mapper.readValue<List<TrailerObject?>?>(it) }.getOrNull() }
                     ?.firstOrNull { it?.youtube != null }?.youtube
 
-                banner_play_btt?.isVisible = youtubeId != null
+                fv<android.widget.ImageView>(R.id.banner_play_btt)?.isVisible = youtubeId != null
                 if (youtubeId != null) {
-                    spacer?.setOnClickListener {
+                    fv<android.view.View>(R.id.spacer)?.setOnClickListener {
                         val appIntent = Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:$youtubeId"))
                         val webIntent = Intent(
                             Intent.ACTION_VIEW,
@@ -264,26 +646,31 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             context.notNull { context ->
                 val settingsManager = PreferenceManager.getDefaultSharedPreferences(context)
                 val savingData = settingsManager.getBoolean("data_saving", false)
-                title_background?.let {
+                fv<android.widget.ImageView>(R.id.title_background)?.let {
                     GlideApp.with(context)
                         .load(glideUrl)
                         .transition(DrawableTransitionOptions.withCrossFade(200))
                         .onlyRetrieveFromCache(savingData)
                         .into(it)
                 }
-                results_banner?.let {
+                fv<android.widget.ImageView>(R.id.results_banner)?.let {
                     GlideApp.with(context)
                         .load(getFullUrlCdn(data.anime.banner))
+                        .transform(com.lagradost.shiro.utils.BlurTransform())
                         .transition(DrawableTransitionOptions.withCrossFade(200))
-//                            .apply(bitmapTransform(BlurTransformation(100, 3)))
                         .onlyRetrieveFromCache(savingData)
                         .into(it)
                 }
 
             }
 
+            // Kuro-style translucent banner: the title card lets the blurred backdrop show through.
+            fv<androidx.cardview.widget.CardView>(R.id.site_data_card_view)?.setCardBackgroundColor(
+                com.jaredrummler.cyanea.Cyanea.instance.backgroundColor and 0x00FFFFFF or (0xD9 shl 24)
+            )
+
             if (data.episodes.isNotEmpty()) {
-                title_background?.setOnClickListener {
+                fv<android.widget.ImageView>(R.id.title_background)?.setOnClickListener {
                     activity?.let {
                         val lastNormal = it.getLatestSeenEpisode(data.dubbify(false))
                         val lastDubbed = it.getLatestSeenEpisode(data.dubbify(true))
@@ -337,7 +724,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             val textColor = Integer.toHexString(getCurrentActivity()!!.getTextColor()).substring(2)
             val textColorGrey =
                 Integer.toHexString(getCurrentActivity()!!.getTextColor(true)).substring(2)
-            title_status?.text =
+            fv<android.widget.TextView>(R.id.title_status)?.text =
                 Html.fromHtml(
                     "<font color=#${textColorGrey}>Status:</font><font color=#${textColor}> ${
                         data.anime.status
@@ -346,27 +733,51 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 )
             isBookmarked = context?.containsKey(BOOKMARK_KEY, data.anime.slug) == true
             toggleHeartVisual(isBookmarked)
-            title_episodes?.text =
+            fv<android.widget.TextView>(R.id.title_episodes)?.text =
                 Html.fromHtml(
-                    "<font color=#${textColorGrey}>Episodes:</font><font color=#${textColor}> ${data.episodes.size}</font>"/*,
+                    "<font color=#${textColorGrey}>Episodes:</font><font color=#${textColor}> ${
+                        if (data.episodes.isNotEmpty()) data.episodes.size.toString()
+                        else data.anime.episodes.takeIf { it.isNotBlank() && it != "0" } ?: "?"
+                    }</font>"/*,
                         FROM_HTML_MODE_COMPACT*/
                 )
 
             if (data.anime.release_year != null) {
-                title_year?.text =
+                fv<android.widget.TextView>(R.id.title_year)?.text =
                     Html.fromHtml(
                         "<font color=#${textColorGrey}>Year:</font><font color=#${textColor}> ${data.anime.release_year}</font>"/*,
                             FROM_HTML_MODE_COMPACT*/
                     )
             } else {
-                title_year?.visibility = GONE
+                fv<android.widget.TextView>(R.id.title_year)?.visibility = GONE
             }
 
             normalSafeApiCall {
-                title_genres?.text =
+                val a = data.anime
+                val score = a.score.toDoubleOrNull()?.takeIf { it > 0 }?.let { if (it > 10) it / 10 else it }
+                fv<android.widget.TextView>(R.id.title_rating)?.apply {
+                    visibility = if (score == null) GONE else VISIBLE
+                    text = score?.let { "★ %.1f / 10".format(it) } ?: ""
+                }
+                val rows = listOf(
+                    "Format" to a.format,
+                    "Duration" to a.episode_duration.takeIf { it.isNotBlank() && it != "0" }?.let { "$it min per episode" },
+                    "Season" to listOf(a.season, a.release_year ?: "").filter { it.isNotBlank() }.joinToString(" "),
+                    "Studio" to a.studios,
+                    "Aired" to a.aired,
+                ).filter { !it.second.isNullOrBlank() }
+                fv<android.widget.TextView>(R.id.title_info)?.apply {
+                    visibility = if (rows.isEmpty()) GONE else VISIBLE
+                    text = Html.fromHtml(rows.joinToString("<br>") {
+                        "<font color=#${textColorGrey}>${it.first}:</font><font color=#${textColor}> ${it.second}</font>"
+                    })
+                }
+            }
+            normalSafeApiCall {
+                fv<android.widget.TextView>(R.id.title_genres)?.text =
                     Html.fromHtml(
                         "<font color=#${textColorGrey}>Genres:</font><font color=#${textColor}> ${
-                            mapper.readValue<List<String>>(data.anime.genres)
+                            parseGenres(data.anime.genres)
                                 .joinToString(prefix = "", postfix = "", separator = " • ")
                         }</font>"/*,
                             FROM_HTML_MODE_COMPACT*/
@@ -375,7 +786,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
 
             displayDate()
 
-            title_name?.text = data.anime.title
+            fv<android.widget.TextView>(R.id.title_name)?.text = data.anime.title
             val fullDescription = data.anime.synopsis
                 .replace("<br>", "")
                 .replace("<i>", "")
@@ -383,15 +794,15 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 .replace("\n", " ")
 
 
-            share_btt?.setOnClickListener {
+            fv<android.widget.ImageView>(R.id.share_btt)?.setOnClickListener {
                 val intent = Intent()
                 intent.action = Intent.ACTION_SEND
-                intent.putExtra(Intent.EXTRA_TEXT, "********/${data.anime.slug}")
+                intent.putExtra(Intent.EXTRA_TEXT, "${data.anime.title}\nnekomo-play://play?slug=${data.anime.slug}")
                 intent.type = "text/plain"
                 startActivity(Intent.createChooser(intent, "Share To:"))
             }
 
-            subscribe_btt?.let { btt ->
+            fv<android.widget.ImageView>(R.id.subscribe_btt)?.let { btt ->
                 val slug = data.anime.slug
                 btt.isVisible = true
                 val subbedBookmark = context?.getKey<BookmarkedTitle>(SUBSCRIPTIONS_BOOKMARK_KEY, slug, null)
@@ -407,59 +818,59 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     val isSubbed = isSubbedOld || subbedBookmark != null
 
                     if (isSubbed) {
-                        Firebase.messaging.unsubscribeFromTopic(slug)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    subscribe_btt?.setImageResource(R.drawable.ic_baseline_notifications_none_24)
-                                    context?.removeKey(SUBSCRIPTIONS_BOOKMARK_KEY, slug)
-                                    context?.removeKey(SUBSCRIPTIONS_BOOKMARK_KEY, slug.replace("-dub", "-dubbed"))
-                                    context?.removeKey(SUBSCRIPTIONS_KEY, slug)
-                                    context?.removeKey(SUBSCRIPTIONS_KEY, slug.replace("-dub", "-dubbed"))
-                                }
-                                var msg = "Unsubscribed to ${data.anime.title}"//getString(R.string.msg_subscribed)
-                                if (!task.isSuccessful) {
-                                    msg = "Unsubscribing failed :("//getString(R.string.msg_subscribe_failed)
-                                }
-                                thread {
-                                    homeViewModel?.subscribed?.postValue(context?.getSubbed())
-                                }
-                                //Log.d(TAG, msg)
-                                context?.let {
-                                    Toast.makeText(it, msg, Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                        fv<android.widget.ImageView>(R.id.subscribe_btt)?.setImageResource(R.drawable.ic_baseline_notifications_none_24)
+                        context?.removeKey(SUBSCRIPTIONS_BOOKMARK_KEY, slug)
+                        context?.removeKey(SUBSCRIPTIONS_BOOKMARK_KEY, slug.replace("-dub", "-dubbed"))
+                        context?.removeKey(SUBSCRIPTIONS_KEY, slug)
+                        context?.removeKey(SUBSCRIPTIONS_KEY, slug.replace("-dub", "-dubbed"))
+                        thread {
+                            homeViewModel?.subscribed?.postValue(context?.getSubbed())
+                        }
+                        context?.let {
+                            Toast.makeText(it, "Unsubscribed to ${data.anime.title}", Toast.LENGTH_SHORT).show()
+                        }
                     } else {
-                        Firebase.messaging.subscribeToTopic(slug)
-                            .addOnCompleteListener { task ->
-                                if (task.isSuccessful) {
-                                    subscribe_btt?.setImageResource(R.drawable.ic_baseline_notifications_active_24)
-                                    context?.setKey(
-                                        SUBSCRIPTIONS_BOOKMARK_KEY, slug, BookmarkedTitle(
-                                            data.anime.title,
-                                            data.anime.poster,
-                                            data.anime.slug,
-                                            data.anime.poster
-                                        )
-                                    )
-                                }
-                                var msg = "Subscribed to ${data.anime.title}"//getString(R.string.msg_subscribed)
-                                if (!task.isSuccessful) {
-                                    msg = "Subscription failed :("//getString(R.string.msg_subscribe_failed)
-                                }
-                                thread {
-                                    homeViewModel?.subscribed?.postValue(context?.getSubbed())
-                                }
-                                //Log.d(TAG, msg)
-                                context?.let {
-                                    Toast.makeText(it, msg, Toast.LENGTH_SHORT).show()
-                                }
-                            }
+                        fv<android.widget.ImageView>(R.id.subscribe_btt)?.setImageResource(R.drawable.ic_baseline_notifications_active_24)
+                        context?.setKey(
+                            SUBSCRIPTIONS_BOOKMARK_KEY, slug, BookmarkedTitle(
+                                data.anime.title,
+                                data.anime.poster,
+                                data.anime.slug,
+                                data.anime.poster
+                            )
+                        )
+                        thread {
+                            homeViewModel?.subscribed?.postValue(context?.getSubbed())
+                        }
+                        context?.let {
+                            Toast.makeText(it, "Subscribed to ${data.anime.title}", Toast.LENGTH_SHORT).show()
+                        }
                     }
                 }
+                // Long-press on a subscribed show mutes/unmutes its episode alerts.
+                btt.setOnLongClickListener {
+                    val c = context ?: return@setOnLongClickListener true
+                    val subscribed = c.getKey<BookmarkedTitle>(SUBSCRIPTIONS_BOOKMARK_KEY, slug, null) != null ||
+                            c.getKey(SUBSCRIPTIONS_KEY, slug, false) == true
+                    if (!subscribed) {
+                        Toast.makeText(c, "Subscribe first, then long-press to mute alerts", Toast.LENGTH_SHORT).show()
+                        return@setOnLongClickListener true
+                    }
+                    val prefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(c)
+                    val muted = prefs.getStringSet("episode_notify_muted", emptySet())!!.toMutableSet()
+                    val nowMuted = muted.add(slug).also { if (!it) muted.remove(slug) }
+                    prefs.edit().putStringSet("episode_notify_muted", muted).apply()
+                    Toast.makeText(
+                        c,
+                        if (nowMuted) "Episode alerts muted for ${data.anime.title}" else "Episode alerts on for ${data.anime.title}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    true
+                }
             }
-            title_descript?.text =
+            fv<com.google.android.material.textview.MaterialTextView>(R.id.title_descript)?.text =
                 fullDescription.substring(0, minOf(DESCRIPTION_LENGTH1 - 3, fullDescription.length)) + "..."
-            title_descript?.setOnClickListener {
+            fv<com.google.android.material.textview.MaterialTextView>(R.id.title_descript)?.setOnClickListener {
                 val builder: AlertDialog.Builder =
                     AlertDialog.Builder(guaranteedContext(context), R.style.AlertDialogCustom)
                 builder.setMessage(fullDescription).setTitle("Synopsis")
@@ -475,8 +886,8 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             Integer.toHexString(getCurrentActivity()!!.getTextColor(true)).substring(2)
         if (anilistPage?.nextAiringEpisode != null) {
             anilistPage?.nextAiringEpisode?.let { airingEpisode ->
-                title_day_of_week?.visibility = VISIBLE
-                title_day_of_week?.text =
+                fv<android.widget.TextView>(R.id.title_day_of_week)?.visibility = VISIBLE
+                fv<android.widget.TextView>(R.id.title_day_of_week)?.text =
                     Html.fromHtml(
                         "<font color=#${textColorGrey}>Schedule:</font><font color=#${textColor}> ${
                             secondsToReadable(airingEpisode.timeUntilAiring, "Now")
@@ -485,7 +896,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     )
             }
         } else {
-            title_day_of_week?.visibility = GONE
+            fv<android.widget.TextView>(R.id.title_day_of_week)?.visibility = GONE
         }
     }
 
@@ -503,14 +914,14 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
 
     private fun toggleHeartVisual(_isBookmarked: Boolean) {
         if (_isBookmarked) {
-            bookmark_btt?.setImageResource(R.drawable.filled_heart)
+            fv<android.widget.ImageView>(R.id.bookmark_btt)?.setImageResource(R.drawable.filled_heart)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                bookmark_btt?.imageTintList = ColorStateList.valueOf(Cyanea.instance.primary)
+                fv<android.widget.ImageView>(R.id.bookmark_btt)?.imageTintList = ColorStateList.valueOf(Cyanea.instance.primary)
             }
         } else {
-            bookmark_btt?.setImageResource(R.drawable.outlined_heart)
+            fv<android.widget.ImageView>(R.id.bookmark_btt)?.setImageResource(R.drawable.outlined_heart)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                bookmark_btt?.imageTintList =
+                fv<android.widget.ImageView>(R.id.bookmark_btt)?.imageTintList =
                     ColorStateList.valueOf(getCurrentActivity()!!.getColorFromAttr(R.attr.white))
             }
         }
@@ -564,6 +975,10 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
     private fun handleAction(episodeClick: EpisodeClickEvent): Job = main {
         val index = episodeClick.data.episode
         val clickData = episodeClick.data.data ?: return@main
+        if (clickData.episodes.getOrNull(index)?.ext == "meta") {
+            showMetaEpisodeMenu(clickData, index, episodeClick.action == ACTION_CLICK_LONG)
+            return@main
+        }
         var currentLinks: List<ExtractorLink>? = null
         currentLoadingCount++
 
@@ -588,7 +1003,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             }
 
             val episodes = clickData.episodes.getOrNull(index)?.sources?.let {
-                mapper.readValue<List<ShiroApi.Companion.EpisodeObject?>?>(it)
+                mapper.readValue<List<NekomoApi.Companion.EpisodeObject?>?>(it)
             }
             val videoId = episodes?.firstOrNull { it?.slug == "gogostream" }
             val sources = safeApiCall {
@@ -663,11 +1078,11 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                             BottomSheetDialog(guaranteedContext(context), R.style.AppBottomSheetDialogTheme)
                         bottomSheetDialog.setContentView(R.layout.bottom_sheet)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            bottomSheetDialog.bottom_sheet_top_bar.backgroundTintList =
+                            bottomSheetDialog.fv<androidx.cardview.widget.CardView>(R.id.bottom_sheet_top_bar).backgroundTintList =
                                 ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
                         }
 
-                        val res = bottomSheetDialog.sort_click
+                        val res = bottomSheetDialog.fv<android.widget.ListView>(R.id.sort_click)
                         res.choiceMode = CHOICE_MODE_SINGLE
                         res.adapter = arrayAdapter
                         res.setItemChecked(
@@ -678,11 +1093,11 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                             startDownload(listOf(it[position]))
                             bottomSheetDialog.dismiss()
                         }
-                        bottomSheetDialog.main_text?.text = "Select source"
+                        bottomSheetDialog.fv<android.widget.TextView>(R.id.main_text)?.text = "Select source"
                         bottomSheetDialog.setOnShowListener {
                             normalSafeApiCall {
-                                BottomSheetBehavior.from(bottomSheetDialog.bottom_sheet_root.parent as View).peekHeight =
-                                    bottomSheetDialog.bottom_sheet_root.height
+                                BottomSheetBehavior.from(bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.bottom_sheet_root).parent as View).peekHeight =
+                                    bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.bottom_sheet_root).height
                             }
                         }
                         bottomSheetDialog.show()
@@ -721,7 +1136,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 currentLinks?.let {
                     guaranteedContext(context).castEpisode(
                         it,
-                        ShiroApi.CommonAnimePageData(
+                        NekomoApi.CommonAnimePageData(
                             clickData.anime.title,
                             clickData.anime.poster,
                             clickData.anime.slug,
@@ -779,7 +1194,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         settingsManager!!.getBoolean("save_history", true)
         val data = resultViewModel?.data?.value
         if (data?.episodes?.isNotEmpty() == true) {
-            if (episodes_res_view?.adapter == null) {
+            if (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter == null) {
                 val adapter: RecyclerView.Adapter<RecyclerView.ViewHolder>? = activity?.let {
                     MasterEpisodeAdapter(
                         it,
@@ -798,14 +1213,14 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                         }
                     )
                 }
-                episodes_res_view?.adapter = adapter
-                (episodes_res_view?.adapter as? MasterEpisodeAdapter)?.notifyDataSetChanged()
+                fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter = adapter
+                (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter as? MasterEpisodeAdapter)?.notifyDataSetChanged()
             } else {
-                (episodes_res_view?.adapter as? MasterEpisodeAdapter)?.data = data
-                (episodes_res_view?.adapter as? MasterEpisodeAdapter)?.items =
+                (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter as? MasterEpisodeAdapter)?.data = data
+                (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter as? MasterEpisodeAdapter)?.items =
                     context?.generateItems(data.episodes, data.anime.slug) ?: mutableListOf()
-                (episodes_res_view?.adapter as? MasterEpisodeAdapter)?.isFiller = fillerEpisodes
-                (episodes_res_view?.adapter as? MasterEpisodeAdapter)?.notifyDataSetChanged()
+                (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter as? MasterEpisodeAdapter)?.isFiller = fillerEpisodes
+                (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter as? MasterEpisodeAdapter)?.notifyDataSetChanged()
             }
         }
     }
@@ -824,16 +1239,17 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             this.view?.visibility = GONE
         } else {
             this.view?.visibility = VISIBLE
-            (episodes_res_view?.adapter as? MasterEpisodeAdapter)?.notifyDataSetChanged()
+            (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter as? MasterEpisodeAdapter)?.notifyDataSetChanged()
         }
     }
 
     private fun onDownloadStarted(id: String) {
         activity?.runOnUiThread {
-            // Cast failure when going out of the page, making it catch to fully stop any of those crashes
+            // Cast/view-lookup failures when the fragment's view is already gone (e.g. user
+            // navigated away while a download event fires) shouldn't crash the app.
             try {
-                (episodes_res_view.adapter as MasterEpisodeAdapter).notifyDataSetChanged()
-            } catch (e: java.lang.NullPointerException) {
+                (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter as? MasterEpisodeAdapter)?.notifyDataSetChanged()
+            } catch (e: Exception) {
             }
         }
     }
@@ -841,8 +1257,22 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
     private var currentLoadingCount = 0 // THIS IS USED TO PREVENT LATE EVENTS, AFTER DISMISS WAS CLICKED
     private var allEpisodes: HashMap<Int, ArrayList<ExtractorLink>> = HashMap()
 
+    // CastContext is a process-wide singleton; keep a reference to the listener we register on
+    // it so it can be unregistered when the fragment's view is destroyed instead of leaking.
+    private var castContext: CastContext? = null
+    private var castStateListener: CastStateListener? = null
+
+    override fun onDestroyView() {
+        loadHandler.removeCallbacksAndMessages(null)
+        castStateListener?.let { listener -> castContext?.removeCastStateListener(listener) }
+        castStateListener = null
+        castContext = null
+        super.onDestroyView()
+    }
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        startLoadingStatus()
         super.onViewCreated(view, savedInstanceState)
         // ORIENTATION_PORTRAIT not working for some reason so I chose this
         /*if (!settingsManager!!.getBoolean("force_landscape", false)) {
@@ -852,7 +1282,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
         }*/
         activity?.showNavigation()
 
-        go_back_btt?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.go_back_btt)?.setOnClickListener {
             activity?.onBackPressed()
         }
 //        val displayMetrics = DisplayMetrics()
@@ -862,118 +1292,123 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
 //        }, 50L)
 //        fragments_new_nav_view?.background = ColorDrawable(Cyanea.instance.backgroundColor)
 //        result_poster_blur?.background = ColorDrawable(Cyanea.instance.backgroundColor)
-        fragment_results_toolbar?.background = ColorDrawable(Cyanea.instance.backgroundColor)
-        fragment_results_nested_scrollview?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<android.widget.HorizontalScrollView>(R.id.fragment_results_toolbar)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<androidx.core.widget.NestedScrollView>(R.id.fragment_results_nested_scrollview)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            site_data_card_view?.backgroundTintList = ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
-            title_holder?.backgroundTintList = ColorStateList.valueOf(Cyanea.instance.backgroundColor)
-            sync_progressbar?.progressTintList = ColorStateList.valueOf(Cyanea.instance.accent)
+            fv<androidx.cardview.widget.CardView>(R.id.site_data_card_view)?.backgroundTintList = ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
+            fv<androidx.cardview.widget.CardView>(R.id.title_holder)?.backgroundTintList = ColorStateList.valueOf(Cyanea.instance.backgroundColor)
+            fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.sync_progressbar)?.progressTintList = ColorStateList.valueOf(Cyanea.instance.accent)
         }
-        loading_overlay?.background = ColorDrawable(Cyanea.instance.backgroundColor)
-        episodes_res_view_holder?.backgroundTintList = ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
-        card_spacer?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<android.widget.FrameLayout>(R.id.loading_overlay)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<androidx.cardview.widget.CardView>(R.id.episodes_res_view_holder)?.backgroundTintList = ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
+        fv<android.widget.LinearLayout>(R.id.card_spacer)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
 
         hideKeyboard()
         //title_duration.text = data!!.duration.toString() + "min"
         if (activity?.isCastApiAvailable() == true) {
             val mMediaRouteButton = view.findViewById<MediaRouteButton>(R.id.media_route_button)
 
-            CastButtonFactory.setUpMediaRouteButton(activity, mMediaRouteButton)
+            CastButtonFactory.setUpMediaRouteButton(requireContext(), mMediaRouteButton)
             val castContext = CastContext.getSharedInstance(requireActivity().applicationContext)
 
-            if (castContext.castState != CastState.NO_DEVICES_AVAILABLE) media_route_button?.visibility = VISIBLE
-            castContext.addCastStateListener { state ->
-                if (media_route_button != null) {
-                    if (state == CastState.NO_DEVICES_AVAILABLE) media_route_button.visibility = GONE else {
-                        if (media_route_button.visibility == GONE) media_route_button.visibility = VISIBLE
-                    }
+            if (castContext.castState != CastState.NO_DEVICES_AVAILABLE) fv<androidx.mediarouter.app.MediaRouteButton>(R.id.media_route_button)?.visibility = VISIBLE
+
+            this.castContext = castContext
+            castStateListener = CastStateListener { state ->
+                // CastContext is a process-wide singleton, so this listener can still fire
+                // after this fragment's view has been destroyed - guard against that instead
+                // of crashing the whole app.
+                try {
+                    val button = fv<androidx.mediarouter.app.MediaRouteButton>(R.id.media_route_button) ?: return@CastStateListener
+                    button.visibility = if (state == CastState.NO_DEVICES_AVAILABLE) GONE else VISIBLE
+                } catch (e: Exception) {
                 }
-            }
+            }.also { castContext.addCastStateListener(it) }
         }
 
 
 
-        anilist_login_btt?.setOnClickListener {
+        fv<android.widget.TextView>(R.id.anilist_login_btt)?.setOnClickListener {
             guaranteedContext(context).authenticateAniList()
         }
-        mal_login_btt?.setOnClickListener {
+        fv<android.widget.TextView>(R.id.mal_login_btt)?.setOnClickListener {
             guaranteedContext(context).authenticateMAL()
         }
 
         observe(resultViewModel!!.totalAniListId) { id ->
-            anilist_btt?.isVisible = id != null
-            anilist_btt?.setOnClickListener {
+            fv<android.widget.TextView>(R.id.anilist_btt)?.isVisible = id != null
+            fv<android.widget.TextView>(R.id.anilist_btt)?.setOnClickListener {
                 activity?.openBrowser("https://anilist.co/anime/$it")
             }
         }
         observe(resultViewModel!!.totalMalId) { id ->
-            mal_btt?.isVisible = id != null
-            mal_btt?.setOnClickListener {
+            fv<android.widget.TextView>(R.id.mal_btt)?.isVisible = id != null
+            fv<android.widget.TextView>(R.id.mal_btt)?.setOnClickListener {
                 activity?.openBrowser("https://myanimelist.net/anime/$id")
             }
         }
 
-        language_btt?.setOnClickListener {
-            resultViewModel?.swapData()
-        }
+        fv<android.widget.ImageView>(R.id.language_btt)?.setOnClickListener { showGlobeMenu() }
+
+        fv<android.widget.ImageView>(R.id.source_btt)?.setOnClickListener { showSourceChooser() }
 
         observe(resultViewModel!!.hasLoadedOther) {
             val transition: Transition = ChangeBounds()
             transition.duration = 100
-            language_btt?.isVisible = it
-            fragment_results_toolbar?.let {
+            fv<android.widget.ImageView>(R.id.language_btt)?.isVisible = true
+            fv<android.widget.HorizontalScrollView>(R.id.fragment_results_toolbar)?.let {
                 TransitionManager.beginDelayedTransition(it, transition)
             }
         }
 
-        relatedTextView?.isVisible = resultViewModel?.related?.value?.isNullOrEmpty() == false
+        fv<android.widget.TextView>(R.id.relatedTextView)?.isVisible = resultViewModel?.related?.value?.isNullOrEmpty() == false
 
         observe(resultViewModel!!.related) {
             val commonData = it?.map {
-                ShiroApi.CommonAnimePageData(
+                NekomoApi.CommonAnimePageData(
                     it.title,
                     it.poster,
                     it.idMal.toString(),
                 )
             }
-            relatedTextView?.isVisible = commonData?.isNullOrEmpty() == false
+            fv<android.widget.TextView>(R.id.relatedTextView)?.isVisible = commonData?.isNullOrEmpty() == false
             activity?.runOnUiThread {
-                relatedScrollView.spanCount = 3
+                fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.relatedScrollView).spanCount = 3
 
                 val adapter: RecyclerView.Adapter<RecyclerView.ViewHolder> =
                     ResAdapter(
                         ArrayList(commonData),
-                        relatedScrollView,
+                        fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.relatedScrollView),
                         true,
                         forceDisableCompact = true
                     )
 
-                relatedScrollView?.adapter = adapter
-                relatedScrollView?.adapter?.notifyDataSetChanged()
+                fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.relatedScrollView)?.adapter = adapter
+                fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.relatedScrollView)?.adapter?.notifyDataSetChanged()
             }
         }
 
         observe(resultViewModel!!.recommendations) {
             val commonData = it?.map {
-                ShiroApi.CommonAnimePageData(
+                NekomoApi.CommonAnimePageData(
                     it.title,
                     it.poster,
                     it.idMal.toString(),
                 )
             }
             activity?.runOnUiThread {
-                recommendationsScrollView.spanCount = 3
+                fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.recommendationsScrollView).spanCount = 3
 
                 val adapter: RecyclerView.Adapter<RecyclerView.ViewHolder> =
                     ResAdapter(
                         ArrayList(commonData),
-                        recommendationsScrollView,
+                        fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.recommendationsScrollView),
                         true,
                         forceDisableCompact = true
                     )
 
-                recommendationsScrollView?.adapter = adapter
-                (recommendationsScrollView?.adapter as? ResAdapter)?.notifyDataSetChanged()
+                fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.recommendationsScrollView)?.adapter = adapter
+                (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.recommendationsScrollView)?.adapter as? ResAdapter)?.notifyDataSetChanged()
             }
         }
 
@@ -993,11 +1428,11 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             }
         }
 
-        sync_btt?.setOnClickListener {
+        fv<android.widget.TextView>(R.id.sync_btt)?.setOnClickListener {
             val number =
-                if (number_picker_episode_text?.text.toString().toIntOrNull() == null
+                if (fv<com.google.android.material.textfield.TextInputEditText>(R.id.number_picker_episode_text)?.text.toString().toIntOrNull() == null
                 ) 1 else minOf(
-                    number_picker_episode_text?.text.toString().toInt(),
+                    fv<com.google.android.material.textfield.TextInputEditText>(R.id.number_picker_episode_text)?.text.toString().toInt(),
                     getEpisodeMax()
                 )
             val data = resultViewModel?.localData?.value?.apply {
@@ -1021,40 +1456,37 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             }
         }
 
-        number_picker_episode_up?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.number_picker_episode_up)?.setOnClickListener {
             val number =
-                if (number_picker_episode_text?.text.toString().toIntOrNull() == null
+                if (fv<com.google.android.material.textfield.TextInputEditText>(R.id.number_picker_episode_text)?.text.toString().toIntOrNull() == null
                 ) 1 else minOf(
-                    number_picker_episode_text?.text.toString().toInt() + 1,
+                    fv<com.google.android.material.textfield.TextInputEditText>(R.id.number_picker_episode_text)?.text.toString().toInt() + 1,
                     getEpisodeMax()
                 )
             postEpisode(number)
         }
-        number_picker_episode_down.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.number_picker_episode_down).setOnClickListener {
             val number =
-                if (number_picker_episode_text?.text.toString().toIntOrNull() == null
+                if (fv<com.google.android.material.textfield.TextInputEditText>(R.id.number_picker_episode_text)?.text.toString().toIntOrNull() == null
                 ) 0 else minOf(
                     maxOf(
-                        number_picker_episode_text?.text.toString().toInt() - 1,
+                        fv<com.google.android.material.textfield.TextInputEditText>(R.id.number_picker_episode_text)?.text.toString().toInt() - 1,
                         0
                     ), getEpisodeMax()
                 )
             postEpisode(number)
         }
 
-        watching_btt?.setOnClickListener(SyncButtonClickListener(0))
-        completed_btt?.setOnClickListener(SyncButtonClickListener(1))
-        on_hold_btt?.setOnClickListener(SyncButtonClickListener(2))
-        dropped_btt?.setOnClickListener(SyncButtonClickListener(3))
-        plan_to_watch_btt?.setOnClickListener(SyncButtonClickListener(4))
-        rewatching_btt?.setOnClickListener(SyncButtonClickListener(5))
+        fv<com.google.android.material.button.MaterialButton>(R.id.watching_btt)?.setOnClickListener(SyncButtonClickListener(0))
+        fv<com.google.android.material.button.MaterialButton>(R.id.completed_btt)?.setOnClickListener(SyncButtonClickListener(1))
+        fv<com.google.android.material.button.MaterialButton>(R.id.on_hold_btt)?.setOnClickListener(SyncButtonClickListener(2))
+        fv<com.google.android.material.button.MaterialButton>(R.id.dropped_btt)?.setOnClickListener(SyncButtonClickListener(3))
+        fv<com.google.android.material.button.MaterialButton>(R.id.plan_to_watch_btt)?.setOnClickListener(SyncButtonClickListener(4))
+        fv<com.google.android.material.button.MaterialButton>(R.id.rewatching_btt)?.setOnClickListener(SyncButtonClickListener(5))
 
 
         resultViewModel?.hasFailed?.observe(viewLifecycleOwner) {
-            if (it == true) {
-                Toast.makeText(activity, "Error loading anime page :(", Toast.LENGTH_LONG).show()
-                activity?.onBackPressed()
-            }
+            if (it == true) showLoadError("Couldn't load this title. It may be unavailable, or your connection or the metadata service is down.")
         }
 
         observe(resultViewModel!!.data) {
@@ -1078,7 +1510,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             }
         }
 
-        sync_score_slider?.addOnChangeListener { _, value, fromUser ->
+        fv<com.google.android.material.slider.Slider>(R.id.sync_score_slider)?.addOnChangeListener { _, value, fromUser ->
             if (fromUser) {
                 resultViewModel?.localData.notNull {
                     it.postValue(it.value?.apply {
@@ -1087,39 +1519,63 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                 }
             }
         }
-        sync_score_slider?.setLabelFormatter { value: Float ->
+        fv<com.google.android.material.slider.Slider>(R.id.sync_score_slider)?.setLabelFormatter { value: Float ->
             getScoreText(value.toInt())
         }
 
-        rewatching_btt?.isVisible = hasAniList
-        sync_page?.isVisible = hasAniList || hasMAL
-        sync_page_failed?.isVisible = !hasAniList && !hasMAL
+        fv<com.google.android.material.button.MaterialButton>(R.id.rewatching_btt)?.isVisible = hasAniList
+        fv<android.widget.LinearLayout>(R.id.sync_page)?.isVisible = hasAniList || hasMAL
+        fv<android.widget.LinearLayout>(R.id.sync_page_failed)?.isVisible = !hasAniList && !hasMAL
+        fv<android.widget.TextView>(R.id.local_library_btt)?.setOnClickListener {
+            val ctx = context ?: return@setOnClickListener
+            val d = resultViewModel?.data?.value?.anime ?: return@setOnClickListener
+            val current = com.lagradost.shiro.utils.LocalLibrary.statusOf(ctx, d.slug)
+            val options = com.lagradost.shiro.utils.LocalLibrary.STATUSES + (if (current != null) listOf("Remove from library") else emptyList())
+            androidx.appcompat.app.AlertDialog.Builder(ctx, R.style.AlertDialogCustom)
+                .setTitle(if (current != null) "Offline library: $current" else "Add to offline library")
+                .setItems(options.toTypedArray()) { _, which ->
+                    if (which < com.lagradost.shiro.utils.LocalLibrary.STATUSES.size) {
+                        com.lagradost.shiro.utils.LocalLibrary.set(ctx, d.slug, d.title, d.poster, options[which])
+                        fv<android.widget.TextView>(R.id.local_library_btt)?.text = "In offline library: ${options[which]}"
+                    } else {
+                        com.lagradost.shiro.utils.LocalLibrary.remove(ctx, d.slug)
+                        fv<android.widget.TextView>(R.id.local_library_btt)?.text = "Save to offline library"
+                    }
+                }
+                .setNegativeButton("Cancel", null)
+                .show()
+        }
+        resultViewModel?.data?.observe(viewLifecycleOwner) { d ->
+            val ctx = context
+            val st = if (d != null && ctx != null) com.lagradost.shiro.utils.LocalLibrary.statusOf(ctx, d.anime.slug) else null
+            fv<android.widget.TextView>(R.id.local_library_btt)?.text = if (st != null) "In offline library: $st" else "Save to offline library"
+        }
 
         observe(resultViewModel!!.syncData) {
             if (it == null) return@observe
-            sync_title_?.text = it.title
-            sync_status_text?.text = fromIntToAnimeStatus(it.status).name
-            sync_score?.text = getScoreText(it.score)
-            sync_progressbar?.max = it.episodes
+            fv<android.widget.TextView>(R.id.sync_title_)?.text = it.title
+            fv<android.widget.TextView>(R.id.sync_status_text)?.text = fromIntToAnimeStatus(it.status).name
+            fv<android.widget.TextView>(R.id.sync_score)?.text = getScoreText(it.score)
+            fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.sync_progressbar)?.max = it.episodes
 
             val realProgress =
                 if (fromIntToAnimeStatus(it.status) == AniListApi.Companion.AniListStatusType.Completed) it.episodes else it.progress
 
             val realEpisodesText = if (it.episodes == 0) "???" else it.episodes
 
-            sync_progress_txt?.text = "${realProgress}/$realEpisodesText"
-            sync_progressbar?.progress = realProgress
+            fv<android.widget.TextView>(R.id.sync_progress_txt)?.text = "${realProgress}/$realEpisodesText"
+            fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.sync_progressbar)?.progress = realProgress
         }
         observe(resultViewModel!!.localData) {
             if (it == null) return@observe
-            sync_score_slider?.value = it.score.toFloat()
+            fv<com.google.android.material.slider.Slider>(R.id.sync_score_slider)?.value = it.score.toFloat()
             val buttons = listOf<MaterialButton?>(
-                watching_btt,
-                completed_btt,
-                plan_to_watch_btt,
-                on_hold_btt,
-                dropped_btt,
-                rewatching_btt
+                fv<com.google.android.material.button.MaterialButton>(R.id.watching_btt),
+                fv<com.google.android.material.button.MaterialButton>(R.id.completed_btt),
+                fv<com.google.android.material.button.MaterialButton>(R.id.plan_to_watch_btt),
+                fv<com.google.android.material.button.MaterialButton>(R.id.on_hold_btt),
+                fv<com.google.android.material.button.MaterialButton>(R.id.dropped_btt),
+                fv<com.google.android.material.button.MaterialButton>(R.id.rewatching_btt)
             )
 
             val view = when (fromIntToAnimeStatus(it.status)) {
@@ -1143,43 +1599,43 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
 
             val realProgress =
                 if (fromIntToAnimeStatus(it.status) == AniListApi.Companion.AniListStatusType.Completed && it.episodes != 0) it.episodes else it.progress
-            number_picker_episode_text?.setText(realProgress.toString())
+            fv<com.google.android.material.textfield.TextInputEditText>(R.id.number_picker_episode_text)?.setText(realProgress.toString())
         }
 
 //        if (settingsManager?.getBoolean("hide_open_website", false) != true) {
 //            observe(resultViewModel!!.slug) { slug ->
-//                open_website_btt?.visibility = VISIBLE
-//                open_website_btt?.setOnClickListener {
+//                fv<android.widget.Button>(R.id.open_website_btt)?.visibility = VISIBLE
+//                fv<android.widget.Button>(R.id.open_website_btt)?.setOnClickListener {
 //                    guaranteedContext(context).openBrowser("********/${slug}")
 //                }
 //            }
 //        }
 
-        edit_button?.isVisible = hasAniList || hasMAL
-        edit_button?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.edit_button)?.isVisible = hasAniList || hasMAL
+        fv<android.widget.ImageView>(R.id.edit_button)?.setOnClickListener {
             activity?.let { context ->
                 val bottomSheetDialog = BottomSheetDialog(context, R.style.AppBottomSheetDialogTheme)
                 bottomSheetDialog.setContentView(R.layout.fragment_results_edit_mal_id)
 
-                bottomSheetDialog.anilist_id_text_holder.hint =
+                bottomSheetDialog.fv<com.google.android.material.textfield.TextInputLayout>(R.id.anilist_id_text_holder).hint =
                     resultViewModel?.currentAniListId?.value?.toString()?.let { "Anilist ID: $it" } ?: "Anilist ID"
-                bottomSheetDialog.mal_id_text_holder.hint =
+                bottomSheetDialog.fv<com.google.android.material.textfield.TextInputLayout>(R.id.mal_id_text_holder).hint =
                     resultViewModel?.currentMalId?.value?.toString()?.let { "Mal ID: $it" } ?: "Mal ID"
 
                 resultViewModel?.overrideMalId?.value?.let {
-                    bottomSheetDialog.mal_id_text_holder.editText?.setText(it.toString())
+                    bottomSheetDialog.fv<com.google.android.material.textfield.TextInputLayout>(R.id.mal_id_text_holder).editText?.setText(it.toString())
                 }
                 resultViewModel?.overrideAniListId?.value?.let {
-                    bottomSheetDialog.anilist_id_text_holder.editText?.setText(it.toString())
+                    bottomSheetDialog.fv<com.google.android.material.textfield.TextInputLayout>(R.id.anilist_id_text_holder).editText?.setText(it.toString())
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    bottomSheetDialog.bottom_sheet_top_bar_mal.backgroundTintList =
+                    bottomSheetDialog.fv<androidx.cardview.widget.CardView>(R.id.bottom_sheet_top_bar_mal).backgroundTintList =
                         ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
                 }
 
-                bottomSheetDialog.mal_id_selector_root.background = ColorDrawable(Cyanea.instance.backgroundColor)
-                bottomSheetDialog.copy_slug_btt.setOnClickListener {
+                bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.mal_id_selector_root).background = ColorDrawable(Cyanea.instance.backgroundColor)
+                bottomSheetDialog.fv<com.google.android.material.button.MaterialButton>(R.id.copy_slug_btt).setOnClickListener {
                     val clipboard: ClipboardManager? =
                         it.context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
                     val clip = ClipData.newPlainText("Slug", resultViewModel?.data?.value?.anime?.slug ?: "")
@@ -1187,8 +1643,8 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     Toast.makeText(it.context, "Slug copied to clipboard", Toast.LENGTH_SHORT).show()
                 }
 
-                bottomSheetDialog.anilist_save_btt.setOnClickListener {
-                    val id = bottomSheetDialog.anilist_id_text_holder.editText?.text?.toString()
+                bottomSheetDialog.fv<com.google.android.material.button.MaterialButton>(R.id.anilist_save_btt).setOnClickListener {
+                    val id = bottomSheetDialog.fv<com.google.android.material.textfield.TextInputLayout>(R.id.anilist_id_text_holder).editText?.text?.toString()
                     val idNum = id?.toIntOrNull()
                     // Allow removal
                     if (id == "") {
@@ -1204,8 +1660,8 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     }
                 }
 
-                bottomSheetDialog.mal_save_btt.setOnClickListener {
-                    val id = bottomSheetDialog.mal_id_text_holder.editText?.text?.toString()
+                bottomSheetDialog.fv<com.google.android.material.button.MaterialButton>(R.id.mal_save_btt).setOnClickListener {
+                    val id = bottomSheetDialog.fv<com.google.android.material.textfield.TextInputLayout>(R.id.mal_id_text_holder).editText?.text?.toString()
                     val idNum = id?.toIntOrNull()
                     if (id == "") {
                         resultViewModel?.data?.value?.anime?.slug?.let { slug ->
@@ -1230,7 +1686,7 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
             }
         }
 
-        bookmark_btt?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.bookmark_btt)?.setOnClickListener {
             context?.toggleHeart(!isBookmarked)
         }
 
@@ -1241,9 +1697,9 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
                     FillerEpisodeCheck.getFillerEpisodes(localName)
                 activity?.runOnUiThread {
                     try {
-                        if (episodes_res_view?.adapter != null) {
-                            (episodes_res_view.adapter as MasterEpisodeAdapter).isFiller = fillerEpisodes
-                            (episodes_res_view.adapter as MasterEpisodeAdapter).notifyDataSetChanged()
+                        if (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view)?.adapter != null) {
+                            (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view).adapter as MasterEpisodeAdapter).isFiller = fillerEpisodes
+                            (fv<androidx.recyclerview.widget.RecyclerView>(R.id.episodes_res_view).adapter as MasterEpisodeAdapter).notifyDataSetChanged()
                         }
                     } catch (e: java.lang.NullPointerException) {
                         e.printStackTrace()
@@ -1254,6 +1710,6 @@ class ResultFragment : Fragment(), PanelsChildGestureRegionObserver.GestureRegio
     }
 
     override fun onGestureRegionsUpdate(gestureRegions: List<Rect>) {
-        overlapping_panels?.setChildGestureRegions(gestureRegions)
+        fv<com.discord.panels.OverlappingPanelsLayout>(R.id.overlapping_panels)?.setChildGestureRegions(gestureRegions)
     }
 }

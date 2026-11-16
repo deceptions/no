@@ -222,7 +222,10 @@ object VideoDownloadManager {
                     data = source.toUri()
                     flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                 }
-                val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, 0)
+                val pendingIntent: PendingIntent = PendingIntent.getActivity(
+                    context, 0, intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
                 builder.setContentIntent(pendingIntent)
             }
 
@@ -311,7 +314,7 @@ object VideoDownloadManager {
                         // BECAUSE episodes lying near will have the same id +1, index will give the same requested as the previous episode, *100000 fixes this
                         context, (4337 + index * 100000 + ep.id),
                         actionResultIntent,
-                        PendingIntent.FLAG_UPDATE_CURRENT
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                     )
 
                     builder.addAction(

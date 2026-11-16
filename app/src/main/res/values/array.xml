@@ -59,4 +59,75 @@
         <item>Toggle Subscribe</item>
         <item>Toggle Favorite and Subscribe</item>
     </string-array>
+
+    <string-array name="SubtitleColors">
+        <item>White</item>
+        <item>Yellow</item>
+        <item>Green</item>
+        <item>Cyan</item>
+    </string-array>
+
+    <string-array name="SubtitleColorValues">
+        <item>white</item>
+        <item>yellow</item>
+        <item>green</item>
+        <item>cyan</item>
+    </string-array>
+
+    <string-array name="StartupPages">
+        <item>Home</item>
+        <item>Search</item>
+        <item>Library</item>
+        <item>Downloads</item>
+    </string-array>
+
+    <string-array name="StartupPageValues">
+        <item>home</item>
+        <item>search</item>
+        <item>library</item>
+        <item>downloads</item>
+    </string-array>
+
+    <string-array name="UiModes">
+        <item>Classic</item>
+        <item>Modern</item>
+    </string-array>
+
+    <string-array name="UiModeValues">
+        <item>classic</item>
+        <item>modern</item>
+    </string-array>
+
+    <string-array name="MangaReaderModes">
+        <item>Continuous scroll (webtoon)</item>
+        <item>Paged, left to right</item>
+        <item>Paged, right to left</item>
+    </string-array>
+
+    <string-array name="MangaReaderModeValues">
+        <item>webtoon</item>
+        <item>ltr</item>
+        <item>rtl</item>
+    </string-array>
+
+    <string-array name="MangaReaderBgs">
+        <item>Black</item>
+        <item>Dark gray</item>
+        <item>White</item>
+    </string-array>
+
+    <string-array name="MangaReaderBgValues">
+        <item>black</item>
+        <item>gray</item>
+        <item>white</item>
+    </string-array>
+
+    <string-array name="DnsProviders">
+        <item>@string/dns_provider_disabled</item>
+        <item>Cloudflare</item>
+        <item>Google</item>
+        <item>AdGuard</item>
+        <item>AdGuard Family</item>
+        <item>Quad9</item>
+    </string-array>
 </resources>

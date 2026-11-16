@@ -19,6 +19,47 @@
                 android:id="@+id/top_padding">
         </View>
 
+        <LinearLayout
+                android:id="@+id/search_history_panel"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:paddingTop="6dp"
+                android:visibility="gone">
+
+            <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content">
+
+                <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerVertical="true"
+                        android:text="Recent searches"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:alpha="0.8"/>
+
+                <TextView
+                        android:id="@+id/search_history_clear"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_alignParentEnd="true"
+                        android:padding="10dp"
+                        android:text="Clear"
+                        android:textSize="13sp"
+                        android:alpha="0.8"
+                        android:background="?attr/selectableItemBackgroundBorderless"/>
+            </RelativeLayout>
+
+            <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/search_history_chips"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"/>
+        </LinearLayout>
+
         <ScrollView
                 android:layout_width="match_parent"
                 android:layout_weight="1"

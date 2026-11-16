@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.home
+import com.lagradost.shiro.utils.fv
 
 import DataStore.getKey
 import DataStore.mapper
@@ -35,17 +36,20 @@ import com.lagradost.shiro.utils.AppUtils.loadPlayer
 import com.lagradost.shiro.utils.AppUtils.observe
 import com.lagradost.shiro.utils.AppUtils.settingsManager
 import com.lagradost.shiro.utils.PositionedCropTransformation
-import com.lagradost.shiro.utils.ShiroApi
-import com.lagradost.shiro.utils.ShiroApi.Companion.cachedHome
-import com.lagradost.shiro.utils.ShiroApi.Companion.getAnimePageNew
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFullUrlCdn
-import com.lagradost.shiro.utils.ShiroApi.Companion.getRandom
-import com.lagradost.shiro.utils.ShiroApi.Companion.hasThrownError
-import com.lagradost.shiro.utils.ShiroApi.Companion.initShiroApi
-import com.lagradost.shiro.utils.ShiroApi.Companion.requestHome
+import com.lagradost.shiro.utils.NekomoApi
+import com.lagradost.shiro.utils.NekomoApi.Companion.cachedHome
+import com.lagradost.shiro.utils.NekomoApi.Companion.getAnimePageNew
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFullUrlCdn
+import com.lagradost.shiro.utils.NekomoApi.Companion.getRandom
+import com.lagradost.shiro.utils.NekomoApi.Companion.hasThrownError
+import com.lagradost.shiro.utils.NekomoApi.Companion.initShiroApi
+import com.lagradost.shiro.utils.NekomoApi.Companion.requestHome
+import com.lagradost.shiro.utils.mvvm.logError
 import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
-import kotlinx.android.synthetic.main.download_card.*
-import kotlinx.android.synthetic.main.fragment_home.*
+import com.lagradost.shiro.utils.home.HomeFeed
+import com.lagradost.shiro.utils.home.HomeLayout
+import com.lagradost.shiro.utils.home.LocalHomeSource
+import com.lagradost.shiro.utils.home.SourceKind
 import kotlin.concurrent.thread
 
 //const val MAXIMUM_FADE = 0.3f
@@ -68,38 +72,41 @@ class HomeFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
-    private fun homeLoaded(data: ShiroApi.ShiroHomePageNew?) {
+    private fun homeLoaded(data: NekomoApi.ShiroHomePageNew?) {
         activity?.runOnUiThread {
-            /*trending_anime_scroll_view.removeAllViews()
-            recentlySeenScrollView.removeAllViews()
-            recently_updated_scroll_view.removeAllViews()
-            favouriteScrollView.removeAllViews()
-            scheduleScrollView.removeAllViews()
+            try {
+            /*fv<androidx.recyclerview.widget.RecyclerView>(R.id.trending_anime_scroll_view).removeAllViews()
+            fv<androidx.recyclerview.widget.RecyclerView>(R.id.recentlySeenScrollView).removeAllViews()
+            fv<androidx.recyclerview.widget.RecyclerView>(R.id.recently_updated_scroll_view).removeAllViews()
+            fv<androidx.recyclerview.widget.RecyclerView>(R.id.favouriteScrollView).removeAllViews()
+            fv<androidx.recyclerview.widget.RecyclerView>(R.id.scheduleScrollView).removeAllViews()
 */
             //val cardInfo = data?.homeSlidesData?.shuffled()?.take(1)?.get(0)
             /*val glideUrl = GlideUrl("https://fastani.net/" + cardInfo?.bannerImage) { FastAniApi.currentHeaders }
             context?.let {
                 GlideApp.with(it)
                     .load(glideUrl)
-                    .into(main_backgroundImage)
+                    .into(fv<android.widget.ImageView>(R.id.main_backgroundImage))
             }*/
 
 
             //"http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4"
 
-            /*main_poster.setOnClickListener {
+            /*fv<android.widget.ImageView>(R.id.main_poster).setOnClickListener {
                 MainActivity.loadPage(cardInfo!!)
                 // MainActivity.loadPlayer(0, 0, cardInfo!!)
             }*/
 
             if (settingsManager?.getBoolean("swipe_to_refresh", true) == true) {
-                home_swipe_refresh?.isEnabled = true
-                home_swipe_refresh.setOnRefreshListener {
+                fv<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.home_swipe_refresh)?.isEnabled = true
+                fv<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.home_swipe_refresh).setOnRefreshListener {
                     generateRandom()
-                    home_swipe_refresh.isRefreshing = false
+                    HomeFeed.clear()
+                    renderSections(true)
+                    fv<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.home_swipe_refresh).isRefreshing = false
                 }
             } else {
-                home_swipe_refresh?.isEnabled = false
+                fv<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.home_swipe_refresh)?.isEnabled = false
             }
 
 
@@ -108,23 +115,23 @@ class HomeFragment : Fragment() {
             // TODO MAKE THIS LIKE MASTERCARDADAPTER
             if (data != null) {
                 activity?.displayCardData(data.trending?.data?.map {
-                    ShiroApi.CommonAnimePageData(
+                    NekomoApi.CommonAnimePageData(
                         it.title,
                         it.poster,
                         it.slug,
                         it.title_english
                     )
-                }, trending_anime_scroll_view, trending_text)
+                }, fv<androidx.recyclerview.widget.RecyclerView>(R.id.trending_anime_scroll_view), fv<android.widget.TextView>(R.id.trending_text))
                 activity?.displayCardData(
                     data.recents?.map {
-                        ShiroApi.CommonAnimePageData(
+                        NekomoApi.CommonAnimePageData(
                             it.anime.title,
                             it.anime.poster,
                             it.anime.slug,
                         )
                     }?.distinctBy { it.slug },
-                    recently_updated_scroll_view,
-                    recently_updated_text
+                    fv<androidx.recyclerview.widget.RecyclerView>(R.id.recently_updated_scroll_view),
+                    fv<android.widget.TextView>(R.id.recently_updated_text)
                 )
 //                activity?.displayCardData(data.data.ongoing_animes, ongoing_anime_scroll_view, ongoing_anime_text)
 //                activity?.displayCardData(data.data.latest_animes, latest_anime_scroll_view, latest_anime_text)
@@ -132,39 +139,44 @@ class HomeFragment : Fragment() {
             //displayCardData(data?.recentlyAddedData, recentScrollView)
             displayFav()
             displaySubbed()
+            renderSections()
 
             /*
             if (data?.schedule?.isNotEmpty() == true) {
-                scheduleRoot.visibility = VISIBLE
+                fv<android.widget.LinearLayout>(R.id.scheduleRoot).visibility = VISIBLE
                 //println(data.favorites!!.map { it?.title?.english})
-                displayCardData(data.schedule, scheduleScrollView)
+                displayCardData(data.schedule, fv<androidx.recyclerview.widget.RecyclerView>(R.id.scheduleScrollView))
             } else {
-                scheduleRoot.visibility = GONE
+                fv<android.widget.LinearLayout>(R.id.scheduleRoot).visibility = GONE
             }
 
 */
             val transition: Transition = ChangeBounds()
             transition.duration = 100
             if (data?.recentlySeen?.isNotEmpty() == true) {
-                recentlySeenRoot.visibility = VISIBLE
+                fv<android.widget.LinearLayout>(R.id.recentlySeenRoot).visibility = VISIBLE
                 //println(data.recentlySeen)
-                activity?.displayCardData(data.recentlySeen, recentlySeenScrollView)
+                activity?.displayCardData(data.recentlySeen, fv<androidx.recyclerview.widget.RecyclerView>(R.id.recentlySeenScrollView))
             } else {
-                recentlySeenRoot.visibility = GONE
+                fv<android.widget.LinearLayout>(R.id.recentlySeenRoot).visibility = GONE
             }
-            TransitionManager.beginDelayedTransition(main_scroll, transition)
-            main_load?.alpha = 0f
-            main_scroll?.alpha = 1f
+            TransitionManager.beginDelayedTransition(fv<com.nirhart.parallaxscroll.views.ParallaxScrollView>(R.id.main_scroll), transition)
+            fv<android.widget.ProgressBar>(R.id.main_load)?.alpha = 0f
+            fv<com.nirhart.parallaxscroll.views.ParallaxScrollView>(R.id.main_scroll)?.alpha = 1f
 
-            main_reload_data_btt?.alpha = 0f
-            main_reload_data_btt?.isClickable = false
-            main_layout?.setPadding(0, MainActivity.statusHeight, 0, 0)
+            fv<android.widget.Button>(R.id.main_reload_data_btt)?.alpha = 0f
+            fv<android.widget.Button>(R.id.main_reload_data_btt)?.isClickable = false
+            fv<android.widget.LinearLayout>(R.id.main_layout)?.setPadding(0, MainActivity.statusHeight, 0, 0)
+            } catch (e: Exception) {
+                // View torn down mid-load (e.g. user switched tab while the home was loading)
+                logError(e)
+            }
         }
     }
 
-    private fun generateRandom(randomPage: ShiroApi.Companion.Random? = null) {
+    private fun generateRandom(randomPage: NekomoApi.Companion.Random? = null) {
         thread {
-            val random: ShiroApi.Companion.Random? = randomPage ?: getRandom()
+            val random: NekomoApi.Companion.Random? = randomPage ?: getRandom()
             cachedHome?.random = random
             val randomData = random?.data
             // Hack, assuming all dubbed shows have a normal equivalent
@@ -177,19 +189,19 @@ class HomeFragment : Fragment() {
             activity?.runOnUiThread {
                 try {
                     if (randomData != null) {
-                        // This can throw NPE as main_layout isn't guaranteed to be inflated
+                        // This can throw NPE as fv<android.widget.LinearLayout>(R.id.main_layout) isn't guaranteed to be inflated
                         val transition: Transition = ChangeBounds()
                         transition.duration = 100 // DURATION OF ANIMATION IN MS
-                        TransitionManager.beginDelayedTransition(main_layout, transition)
-                        main_poster_holder.visibility = VISIBLE
-                        main_poster_text_holder.visibility = VISIBLE
+                        TransitionManager.beginDelayedTransition(fv<android.widget.LinearLayout>(R.id.main_layout), transition)
+                        fv<android.widget.FrameLayout>(R.id.main_poster_holder).visibility = VISIBLE
+                        fv<android.widget.LinearLayout>(R.id.main_poster_text_holder).visibility = VISIBLE
                         val marginParams: FrameLayout.LayoutParams = FrameLayout.LayoutParams(
                             LinearLayoutCompat.LayoutParams.MATCH_PARENT, // view width
                             LinearLayoutCompat.LayoutParams.WRAP_CONTENT, // view height
                         )
 
                         marginParams.setMargins(0, 250.toPx, 0, 0)
-                        main_layout.layoutParams = marginParams
+                        fv<android.widget.LinearLayout>(R.id.main_layout).layoutParams = marginParams
 
                         val glideUrlMain = getFullUrlCdn(randomData.poster)
                         context?.let {
@@ -201,63 +213,70 @@ class HomeFragment : Fragment() {
                                 .transform(PositionedCropTransformation(1f, 0f))
                                 .transition(DrawableTransitionOptions.withCrossFade(100))
                                 .onlyRetrieveFromCache(savingData)
-                                .into(main_poster)
+                                .into(fv<android.widget.ImageView>(R.id.main_poster))
                         }
 
-                        main_name?.text = randomData.title
+                        fv<android.widget.TextView>(R.id.main_name)?.text = randomData.title
                         normalSafeApiCall {
-                            main_genres?.text =
-                                mapper.readValue<List<String>>(randomData.genres)
+                            fv<android.widget.TextView>(R.id.main_genres)?.text =
+                                randomData.genres.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                                     .joinToString(prefix = "", postfix = "", separator = " • ")
                         }
-                        main_watch_button.setOnClickListener {
+                        fv<com.google.android.material.button.MaterialButton>(R.id.main_watch_button).setOnClickListener {
                             Toast.makeText(activity, "Loading link", Toast.LENGTH_SHORT).show()
                             thread {
-                                // LETTING USER PRESS STUFF WHEN THIS LOADS CAN CAUSE BUGS
-                                val page = getAnimePageNew(randomData.slug)
-                                if (page != null) {
-                                    val nextEpisode = context?.getNextEpisode(page.data)
-                                    nextEpisode?.let {
-                                        activity?.loadPlayer(nextEpisode.episodeIndex, 0L, page.data)
+                                try {
+                                    // LETTING USER PRESS STUFF WHEN THIS LOADS CAN CAUSE BUGS
+                                    val page = getAnimePageNew(randomData.slug)
+                                    if (page != null) {
+                                        val nextEpisode = context?.getNextEpisode(page.data)
+                                        nextEpisode?.let {
+                                            activity?.loadPlayer(nextEpisode.episodeIndex, 0L, page.data)
+                                        }
+                                    } else {
+                                        activity?.runOnUiThread {
+                                            Toast.makeText(activity, "Loading link failed", Toast.LENGTH_SHORT).show()
+                                        }
                                     }
-                                } else {
+                                } catch (e: Exception) {
+                                    logError(e)
                                     activity?.runOnUiThread {
                                         Toast.makeText(activity, "Loading link failed", Toast.LENGTH_SHORT).show()
                                     }
                                 }
                             }
                         }
-                        main_watch_button.setOnLongClickListener {
+                        fv<com.google.android.material.button.MaterialButton>(R.id.main_watch_button).setOnLongClickListener {
                             //MainActivity.loadPage(cardInfo!!)
-                            if (cardInfo != null) {
-                                val page = getAnimePageNew(randomData.slug)
-                                val nextEpisode = page?.data?.let { it1 -> context?.getNextEpisode(it1) }
-                                if (nextEpisode != null) {
-                                    Toast.makeText(
-                                        activity,
-                                        "Episode ${nextEpisode.episodeIndex + 1}",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
+                            val page = getAnimePageNew(randomData.slug)
+                            val nextEpisode = page?.data?.let { it1 -> context?.getNextEpisode(it1) }
+                            if (nextEpisode != null) {
+                                Toast.makeText(
+                                    activity,
+                                    "Episode ${nextEpisode.episodeIndex + 1}",
+                                    Toast.LENGTH_LONG
+                                ).show()
                             }
                             return@setOnLongClickListener true
                         }
-                        main_info_button.setOnClickListener {
+                        fv<com.google.android.material.button.MaterialButton>(R.id.main_info_button).setOnClickListener {
                             activity?.loadPage(randomData.slug, randomData.title)
                         }
                     } else {
-                        main_poster_holder.visibility = GONE
-                        main_poster_text_holder.visibility = GONE
+                        fv<android.widget.FrameLayout>(R.id.main_poster_holder).visibility = GONE
+                        fv<android.widget.LinearLayout>(R.id.main_poster_text_holder).visibility = GONE
                         val marginParams: FrameLayout.LayoutParams = FrameLayout.LayoutParams(
                             LinearLayoutCompat.LayoutParams.MATCH_PARENT, // view width
                             LinearLayoutCompat.LayoutParams.WRAP_CONTENT, // view height
                         )
 
                         marginParams.setMargins(0)
-                        main_layout.layoutParams = marginParams
+                        fv<android.widget.LinearLayout>(R.id.main_layout).layoutParams = marginParams
                     }
-                } catch (e: java.lang.NullPointerException) {
-                    println("NPE in generateRandom!")
+                } catch (e: Exception) {
+                    // e.g. IllegalStateException from fv() when the fragment's view is already
+                    // gone (user navigated away while this callback was in flight)
+                    logError(e)
                 }
 
 
@@ -267,16 +286,131 @@ class HomeFragment : Fragment() {
 
     }
 
+    private var renderedSignature = ""
+    private val specialViews = HashMap<String, View>()
+
+    /**
+     * Builds the customizable part of the home page from [HomeLayout]: native rows (continue watching, subscribed,
+     * favorites) are re-ordered, and every other enabled section becomes a lazily loaded poster row.
+     */
+    private fun renderSections(force: Boolean = false) {
+        val ctx = context ?: return
+        val container = fv<android.widget.LinearLayout>(R.id.home_sections) ?: return
+        val active = HomeLayout.active(ctx)
+        val signature = active.joinToString(",") { it.def.id }
+        if (!force && signature == renderedSignature) return
+        renderedSignature = signature
+
+        // The old fixed trending / recently-updated blocks are replaced by the dynamic rows below
+        listOf(R.id.trending_text, R.id.recently_updated_text).forEach { fv<View>(it)?.visibility = GONE }
+        listOf(R.id.trending_anime_scroll_view, R.id.recently_updated_scroll_view).forEach {
+            (fv<View>(it)?.parent as? View)?.visibility = GONE
+        }
+        if (specialViews.isEmpty()) {
+            specialViews[LocalHomeSource.CONTINUE] = fv<View>(R.id.recentlySeenRoot) ?: return
+            specialViews[LocalHomeSource.SUBSCRIBED] = fv<View>(R.id.subscribedRoot) ?: return
+            specialViews[LocalHomeSource.FAVORITES] = fv<View>(R.id.favouriteRoot) ?: return
+        }
+        specialViews.values.forEach { (it.parent as? android.view.ViewGroup)?.removeView(it) }
+        container.removeAllViews()
+
+        for (entry in active) {
+            val special = specialViews[entry.def.id]
+            if (special != null) {
+                container.addView(special)
+                continue
+            }
+            val row = layoutInflater.inflate(R.layout.home_section_row, container, false)
+            row.alpha = 0f
+            row.visibility = GONE
+            container.addView(row)
+            loadSection(entry, row)
+        }
+
+        container.addView(android.widget.TextView(ctx).apply {
+            text = "Customize home page"
+            gravity = android.view.Gravity.CENTER
+            textSize = 14f
+            alpha = 0.75f
+            setPadding(0, 24.toPx, 0, 40.toPx)
+            setOnClickListener {
+                startActivity(android.content.Intent(ctx, com.lagradost.shiro.ui.settings.HomeSettingsActivity::class.java))
+            }
+        })
+    }
+
+    private fun loadSection(entry: HomeLayout.Entry, row: View) {
+        val ctx = context ?: return
+        val title = row.findViewById<android.widget.TextView>(R.id.section_title)
+        val list = row.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.section_list)
+        val progress = row.findViewById<View>(R.id.section_progress)
+        title.text = entry.def.title
+
+        fun show(items: List<NekomoApi.CommonAnimePageData>?) {
+            val act = activity ?: return
+            if (items.isNullOrEmpty()) {
+                row.visibility = GONE
+                return
+            }
+            progress.visibility = GONE
+            if (entry.source.kind == SourceKind.OFFICIAL) {
+                title.compoundDrawables.forEach { it?.alpha = 0 }
+                list.adapter = OfficialLinksAdapter(items)
+            } else {
+                act.displayCardData(items, list, title)
+            }
+            row.visibility = VISIBLE
+            if (com.lagradost.shiro.utils.Motion.reduced(ctx)) row.alpha = 1f else row.animate().alpha(1f).setDuration(250).start()
+        }
+
+        HomeFeed.cached(entry.def.id)?.let { show(it); return }
+        row.visibility = VISIBLE
+        row.alpha = 1f
+        thread {
+            val items = HomeFeed.load(ctx, entry)
+            activity?.runOnUiThread { normalSafeApiCall { show(items) } }
+        }
+    }
+
+    /** Link-out cards for official services: they open the service's own site or app. */
+    private class OfficialLinksAdapter(private val items: List<NekomoApi.CommonAnimePageData>) :
+        androidx.recyclerview.widget.RecyclerView.Adapter<androidx.recyclerview.widget.RecyclerView.ViewHolder>() {
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): androidx.recyclerview.widget.RecyclerView.ViewHolder {
+            val b = com.google.android.material.button.MaterialButton(parent.context).apply {
+                layoutParams = androidx.recyclerview.widget.RecyclerView.LayoutParams(150.toPx, 90.toPx).apply { setMargins(8.toPx, 8.toPx, 8.toPx, 8.toPx) }
+                isAllCaps = false
+                cornerRadius = 12.toPx
+            }
+            return object : androidx.recyclerview.widget.RecyclerView.ViewHolder(b) {}
+        }
+
+        override fun onBindViewHolder(holder: androidx.recyclerview.widget.RecyclerView.ViewHolder, position: Int) {
+            val item = items[position]
+            (holder.itemView as com.google.android.material.button.MaterialButton).apply {
+                text = item.name
+                setOnClickListener { com.lagradost.shiro.ui.welcome.SocialLinks.openUrl(context, item.slug) }
+            }
+        }
+
+        override fun getItemCount() = items.size
+    }
+
+    override fun onDestroyView() {
+        specialViews.clear()
+        renderedSignature = ""
+        super.onDestroyView()
+    }
+
     private fun onHomeErrorCatch(fullRe: Boolean) {
         activity?.runOnUiThread {
-            if (main_reload_data_btt != null) {
-                main_reload_data_btt?.alpha = 1f
-                main_load?.alpha = 0f
-                main_reload_data_btt?.isClickable = true
-                main_reload_data_btt?.setOnClickListener {
-                    main_reload_data_btt?.alpha = 0f
-                    main_load?.alpha = 1f
-                    main_reload_data_btt?.isClickable = false
+            if (fv<android.widget.Button>(R.id.main_reload_data_btt) != null) {
+                fv<android.widget.Button>(R.id.main_reload_data_btt)?.alpha = 1f
+                fv<android.widget.ProgressBar>(R.id.main_load)?.alpha = 0f
+                fv<android.widget.Button>(R.id.main_reload_data_btt)?.isClickable = true
+                fv<android.widget.Button>(R.id.main_reload_data_btt)?.setOnClickListener {
+                    fv<android.widget.Button>(R.id.main_reload_data_btt)?.alpha = 0f
+                    fv<android.widget.ProgressBar>(R.id.main_load)?.alpha = 1f
+                    fv<android.widget.Button>(R.id.main_reload_data_btt)?.isClickable = false
                     thread {
                         if (fullRe) {
                             context?.initShiroApi()
@@ -295,16 +429,16 @@ class HomeFragment : Fragment() {
         activity?.runOnUiThread {
             // RELOAD ON NEW FAV!
             if (favorites?.isNotEmpty() == true) {
-                favouriteRoot.visibility = VISIBLE
+                fv<android.widget.LinearLayout>(R.id.favouriteRoot).visibility = VISIBLE
                 //println(data.favorites!!.map { it?.title?.english})
                 activity?.displayCardData(
                     favorites.sortedWith(compareBy { it?.name }).mapNotNull { it }.toList(),
-                    favouriteScrollView,
-                    favorites_text,
+                    fv<androidx.recyclerview.widget.RecyclerView>(R.id.favouriteScrollView),
+                    fv<android.widget.TextView>(R.id.favorites_text),
                     overrideHideDubbed = true
                 )
             } else {
-                favouriteRoot.visibility = GONE
+                fv<android.widget.LinearLayout>(R.id.favouriteRoot).visibility = GONE
             }
         }
     }
@@ -314,16 +448,16 @@ class HomeFragment : Fragment() {
             val subscribed = homeViewModel!!.subscribed.value
             activity?.runOnUiThread {
                 if (subscribed?.isNotEmpty() == true) {
-                    subscribedRoot.visibility = VISIBLE
+                    fv<android.widget.LinearLayout>(R.id.subscribedRoot).visibility = VISIBLE
                     //println(data.favorites!!.map { it?.title?.english})
                     activity?.displayCardData(
                         subscribed.sortedWith(compareBy { it?.name }).mapNotNull { it }.toList(),
-                        subscribedScrollView,
-                        subscribed_text,
+                        fv<androidx.recyclerview.widget.RecyclerView>(R.id.subscribedScrollView),
+                        fv<android.widget.TextView>(R.id.subscribed_text),
                         overrideHideDubbed = true
                     )
                 } else {
-                    subscribedRoot.visibility = GONE
+                    fv<android.widget.LinearLayout>(R.id.subscribedRoot).visibility = GONE
                 }
             }
         }
@@ -331,6 +465,7 @@ class HomeFragment : Fragment() {
 
 
     override fun onResume() {
+        normalSafeApiCall { renderSections() }
         observe(homeViewModel!!.subscribed) {
             displaySubbed()
         }
@@ -342,14 +477,14 @@ class HomeFragment : Fragment() {
     }
 
     override fun onDestroy() {
-        ShiroApi.onHomeError -= ::onHomeErrorCatch
+        NekomoApi.onHomeError -= ::onHomeErrorCatch
         super.onDestroy()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        main_scroll?.alpha = 0f
-        ShiroApi.onHomeError += ::onHomeErrorCatch
+        fv<com.nirhart.parallaxscroll.views.ParallaxScrollView>(R.id.main_scroll)?.alpha = 0f
+        NekomoApi.onHomeError += ::onHomeErrorCatch
         if (hasThrownError != -1) {
             onHomeErrorCatch(hasThrownError == 1)
         }
@@ -358,7 +493,7 @@ class HomeFragment : Fragment() {
             it.observe(viewLifecycleOwner) { homePage ->
                 homeLoaded(homePage)
             }
-            if (it.value != null && main_load?.alpha == 1.0f) {
+            if (it.value != null && fv<android.widget.ProgressBar>(R.id.main_load)?.alpha == 1.0f) {
                 homeLoaded(it.value)
             }
         }
@@ -369,30 +504,18 @@ class HomeFragment : Fragment() {
         }
 
         // This gets overwritten when data is loaded
-        home_swipe_refresh?.setOnRefreshListener {
-            home_swipe_refresh?.isRefreshing = false
+        fv<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.home_swipe_refresh)?.setOnRefreshListener {
+            fv<androidx.swiperefreshlayout.widget.SwipeRefreshLayout>(R.id.home_swipe_refresh)?.isRefreshing = false
         }
 
 
-
-        if (guaranteedContext(context).getKey("DMCA_MESSAGE", false) == false) {
-            guaranteedContext(context).setKey("DMCA_MESSAGE", true)
-            AlertDialog.Builder(guaranteedContext(context), R.style.AlertDialogCustom)
-                .setCancelable(false)
-                .setTitle("DMCA DISCLAIMER")
-                .setPositiveButton("I understand") { dialogInterface, _ ->
-                    dialogInterface.dismiss()
-                }
-                .setMessage("The Shiro app is only a front-end to the shiro site available in the browser. As it's only a front-end it does not host nor control the videos accessible in the app. The legality of the content shown in the app is therefore the responsibility of the video hosts. It's also the users responsibility to make sure that their usage of this app is legal in their country. Use this app at your own risk!\n\nIn case of copyright infringement contact the offending video hosting provider!\n\nThis app is only for personal and educational use.\n")
-                .show()
-        }
 
         // CAUSES CRASH ON 6.0.0
-        /*main_scroll.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
+        /*fv<com.nirhart.parallaxscroll.views.ParallaxScrollView>(R.id.main_scroll).setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
                val fade = (FADE_SCROLL_DISTANCE - scrollY) / FADE_SCROLL_DISTANCE
                // COLOR ARGB INTRODUCED IN 26!
                val gray: Int = Color.argb(fade, 0f, fade, 0f)
-            //   main_backgroundImage.alpha = maxOf(0f, MAXIMUM_FADE * fade) // DON'T DUE TO ALPHA FADING HINDERING FOREGROUND GRADIENT
+            //   fv<android.widget.ImageView>(R.id.main_backgroundImage).alpha = maxOf(0f, MAXIMUM_FADE * fade) // DON'T DUE TO ALPHA FADING HINDERING FOREGROUND GRADIENT
         }*/
 
     }

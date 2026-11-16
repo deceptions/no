@@ -194,16 +194,16 @@ internal class CircleClipTapView(context: Context?, attrs: AttributeSet) :
                 }
 
                 addListener(object : Animator.AnimatorListener {
-                    override fun onAnimationStart(animation: Animator?) {
+                    override fun onAnimationStart(animation: Animator) {
                         visibility = VISIBLE
                     }
 
-                    override fun onAnimationEnd(animation: Animator?) {
+                    override fun onAnimationEnd(animation: Animator) {
                         if (!forceReset) performAtEnd()
                     }
 
-                    override fun onAnimationRepeat(animation: Animator?) {}
-                    override fun onAnimationCancel(animation: Animator?) {}
+                    override fun onAnimationRepeat(animation: Animator) {}
+                    override fun onAnimationCancel(animation: Animator) {}
                 })
             }
         }
@@ -233,14 +233,14 @@ internal class CircleClipTapView(context: Context?, attrs: AttributeSet) :
         updatePathShape()
     }
 
-    override fun onDraw(canvas: Canvas?) {
+    override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
         // Background
-        canvas?.clipPath(shapePath)
-        canvas?.drawPath(shapePath, backgroundPaint)
+        canvas.clipPath(shapePath)
+        canvas.drawPath(shapePath, backgroundPaint)
 
         // Circle
-        canvas?.drawCircle(cX, cY, currentRadius, circlePaint)
+        canvas.drawCircle(cX, cY, currentRadius, circlePaint)
     }
 }

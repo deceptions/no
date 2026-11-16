@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.home
+import com.lagradost.shiro.utils.fv
 
 import android.content.res.ColorStateList
 import android.content.res.Configuration
@@ -21,8 +22,7 @@ import com.lagradost.shiro.ui.MainActivity.Companion.statusHeight
 import com.lagradost.shiro.ui.search.ResAdapter
 import com.lagradost.shiro.utils.AppUtils.filterCardList
 import com.lagradost.shiro.utils.AppUtils.settingsManager
-import com.lagradost.shiro.utils.ShiroApi
-import kotlinx.android.synthetic.main.fragment_expanded_home.*
+import com.lagradost.shiro.utils.NekomoApi
 
 const val CARD_LIST = "card_list"
 const val TITLE = "title"
@@ -31,9 +31,9 @@ const val TITLE = "title"
 const val EXPANDED_HOME_FRAGMENT_TAG = "EXPANDED_HOME_FRAGMENT_TAG"
 
 class ExpandedHomeFragment : Fragment() {
-    private var cardList: List<ShiroApi.CommonAnimePageData>? = null
+    private var cardList: List<NekomoApi.CommonAnimePageData>? = null
     private var title: String? = null
-    private val mapper = JsonMapper.builder().addModule(KotlinModule())
+    private val mapper = JsonMapper.builder().addModule(KotlinModule.Builder().build())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,11 +72,11 @@ class ExpandedHomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         isInExpandedView = true
-        title_go_back_holder.setOnClickListener {
+        fv<android.widget.FrameLayout>(R.id.title_go_back_holder).setOnClickListener {
             activity?.onBackPressed()
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            expanded_home_title_holder.backgroundTintList = ColorStateList.valueOf(
+            fv<androidx.cardview.widget.CardView>(R.id.expanded_home_title_holder).backgroundTintList = ColorStateList.valueOf(
                 Cyanea.instance.backgroundColorDark
             )
         }
@@ -85,7 +85,7 @@ class ExpandedHomeFragment : Fragment() {
             LinearLayoutCompat.LayoutParams.MATCH_PARENT, // view width
             statusHeight // view height
         )
-        top_padding_expanded_home.layoutParams = topParams
+        fv<android.view.View>(R.id.top_padding_expanded_home).layoutParams = topParams
 
         val spanCountPortrait = settingsManager?.getInt("expanded_span_count", 3) ?: 3
 
@@ -95,22 +95,22 @@ class ExpandedHomeFragment : Fragment() {
                 false
             )
         ) {
-            expanded_card_list_view?.spanCount = spanCountPortrait * 2
+            fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.expanded_card_list_view)?.spanCount = spanCountPortrait * 2
         } else {
-            expanded_card_list_view?.spanCount = spanCountPortrait
+            fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.expanded_card_list_view)?.spanCount = spanCountPortrait
         }
-        title_text?.text = title
+        fv<android.widget.TextView>(R.id.title_text)?.text = title
         val adapter: RecyclerView.Adapter<RecyclerView.ViewHolder> =
             ResAdapter(
                 ArrayList(),
-                expanded_card_list_view,
+                fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.expanded_card_list_view),
                 false,
                 forceDisableCompact = true
             )
-        expanded_card_list_view?.adapter = adapter
-        (expanded_card_list_view?.adapter as? ResAdapter)?.cardList =
+        fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.expanded_card_list_view)?.adapter = adapter
+        (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.expanded_card_list_view)?.adapter as? ResAdapter)?.cardList =
             ArrayList(filterCardList(cardList) ?: listOf())
-        (expanded_card_list_view?.adapter as? ResAdapter)?.notifyDataSetChanged()
+        (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.expanded_card_list_view)?.adapter as? ResAdapter)?.notifyDataSetChanged()
 
     }
 }

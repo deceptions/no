@@ -73,9 +73,9 @@ object BackupUtils {
             if (checkWrite()) {
                 val downloadDir =
                     Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
-                        .toString() + "/Shiro/"
+                        .toString() + "/Nekomo/"
                 val date = SimpleDateFormat("yyyy_MM_dd_HH_mm").format(Date(currentTimeMillis()))
-                val allDataFile = File(downloadDir + "Shiro_Backup_${date}.xml")
+                val allDataFile = File(downloadDir + "Nekomo_Backup_${date}.xml")
                 allDataFile.parentFile?.mkdirs()
 
                 val allData = getSharedPrefs().all
@@ -107,9 +107,9 @@ object BackupUtils {
                 allDataFile.writeText(mapper.writeValueAsString(backupFile))
 
                 /*val customPreferences = File(filesDir.parent + "/shared_prefs/${packageName}_preferences.xml")
-                val customPreferencesNew = File(downloadDir + "Shiro_Backup_Data_${date}.xml")
+                val customPreferencesNew = File(downloadDir + "Nekomo_Backup_Data_${date}.xml")
                 val settingsPreferences = File(filesDir.parent + "/shared_prefs/rebuild_preference.xml")
-                val settingsPreferencesNew = File(downloadDir + "Shiro_Backup_Settings_${date}.xml")
+                val settingsPreferencesNew = File(downloadDir + "Nekomo_Backup_Settings_${date}.xml")
 
                 customPreferences.copyTo(customPreferencesNew)
                 settingsPreferences.copyTo(settingsPreferencesNew)*/

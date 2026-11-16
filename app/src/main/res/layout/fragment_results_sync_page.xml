@@ -442,6 +442,19 @@
                 android:text=" Log in to MAL"
                 android:layout_toEndOf="@+id/anilist_btt"
         />
+        <TextView
+                android:layout_marginTop="30dp"
+                android:layout_width="wrap_content"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:elevation="10dp"
+                android:gravity="center"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:layout_height="40dp"
+                android:foreground="@drawable/button_outline"
+                android:id="@+id/local_library_btt"
+                android:text="Save to offline library"
+        />
 
     </LinearLayout>
 

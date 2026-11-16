@@ -60,6 +60,7 @@
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
     <LinearLayout
+            android:orientation="vertical"
             android:clickable="true"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -73,9 +74,15 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="20sp"
-                android:text="Log in to Anilist or MAL to view your library"
+                android:text="Log in to Anilist or MAL to view your library, or use your offline library on this device"
         >
 
         </TextView>
+        <Button
+                android:id="@+id/local_library_open"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Open offline library"/>
     </LinearLayout>
 </FrameLayout>

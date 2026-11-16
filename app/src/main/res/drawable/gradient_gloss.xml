@@ -1,0 +1,11 @@
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+       android:shape="rectangle" >
+
+    <!-- Subtle top sheen so banners/hero art get a faint glossy lift. -->
+    <gradient
+            android:angle="270"
+            android:startColor="#14FFFFFF"
+            android:endColor="#00000000"
+    />
+    <corners android:radius="0dp" />
+</shape>

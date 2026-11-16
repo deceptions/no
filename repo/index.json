@@ -1,0 +1,22 @@
+{
+  "nekomoRepository": 1,
+  "name": "Nekomo Official Repository",
+  "description": "Free and legal sources recommended by Nekomo. Nothing is installed until you add this repository yourself.",
+  "version": 1,
+  "updated": "2026-10-29",
+  "repositories": [
+    {
+      "type": "cloudstream",
+      "name": "CloudStream official extensions",
+      "url": "https://raw.githubusercontent.com/recloudstream/extensions/master/repo.json",
+      "description": "Maintained by the CloudStream team: Internet Archive, Dailymotion, YouTube, Twitch and Invidious."
+    }
+  ],
+  "apis": [
+    { "id": "anilist", "name": "AniList", "description": "Main anime and manga catalogue (titles, art, episodes, trailers).", "url": "https://anilist.co" },
+    { "id": "kitsu", "name": "Kitsu", "description": "Backup anime metadata and episode lists.", "url": "https://kitsu.app" },
+    { "id": "jikan", "name": "MyAnimeList (Jikan)", "description": "Backup anime metadata.", "url": "https://jikan.moe" },
+    { "id": "tvmaze", "name": "TVMaze", "description": "TV show metadata and episode lists.", "url": "https://www.tvmaze.com" },
+    { "id": "tmdb", "name": "TMDB", "description": "Movie and TV metadata. Needs your own free API key.", "url": "https://www.themoviedb.org" }
+  ]
+}

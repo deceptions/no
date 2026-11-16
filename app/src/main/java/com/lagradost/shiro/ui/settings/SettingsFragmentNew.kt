@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.settings
+import com.lagradost.shiro.utils.fv
 
 import ANILIST_USER_KEY
 import DataStore.getKey
@@ -35,7 +36,6 @@ import com.lagradost.shiro.utils.AppUtils.observe
 import com.lagradost.shiro.utils.MALApi
 import com.lagradost.shiro.utils.MALApi.Companion.getMalUser
 import com.lagradost.shiro.utils.MAL_ACCOUNT_ID
-import kotlinx.android.synthetic.main.fragment_settings.*
 import kotlin.concurrent.thread
 
 class SettingsFragmentNew : Fragment() {
@@ -54,6 +54,16 @@ class SettingsFragmentNew : Fragment() {
         return inflater.inflate(R.layout.fragment_settings, container, false)
     }
 
+    /** The logo header uses ~260dp, which leaves almost no room for the list in landscape, so it is hidden there (and on TV). */
+    private fun updateHeader(landscape: Boolean) {
+        fv<android.widget.LinearLayout>(R.id.account_icon)?.let { h ->
+            h.layoutTransition = null // the layout animation kept the old space reserved after hiding
+            val show = tvActivity == null && !landscape
+            h.visibility = if (show) android.view.View.VISIBLE else android.view.View.GONE
+            (h.parent as? android.view.View)?.requestLayout()
+        }
+    }
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -66,21 +76,89 @@ class SettingsFragmentNew : Fragment() {
             Pair("Updates", R.xml.settings_update_info),
             Pair("About", R.xml.settings_about),
         )*/
-        account_icon?.isVisible = tvActivity == null
+        updateHeader(resources.configuration.orientation == android.content.res.Configuration.ORIENTATION_LANDSCAPE)
+        // Rotating resizes the view without recreating it (and the fragment sees the old orientation), so follow the real size
+        view.addOnLayoutChangeListener { _, l, t, r, b, _, _, _, _ -> updateHeader((r - l) > (b - t)) }
         val array = arrayOf(
-            Pair(settings_general, R.xml.settings_general),
-            Pair(settings_style, R.xml.custom_pref_cyanea),
-            Pair(settings_player, R.xml.settings_player),
-            Pair(settings_accounts, R.xml.settings_accounts),
-            Pair(settings_history, R.xml.settings_history),
-            Pair(settings_updates, R.xml.settings_update_info),
-            Pair(settings_about, R.xml.settings_about),
+            Pair(fv<android.widget.TextView>(R.id.settings_general), R.xml.settings_general),
+            Pair(fv<android.widget.TextView>(R.id.settings_style), R.xml.custom_pref_cyanea),
+            Pair(fv<android.widget.TextView>(R.id.settings_player), R.xml.settings_player),
+            Pair(fv<android.widget.TextView>(R.id.settings_accounts), R.xml.settings_accounts),
+            Pair(fv<android.widget.TextView>(R.id.settings_history), R.xml.settings_history),
+            Pair(fv<android.widget.TextView>(R.id.settings_updates), R.xml.settings_update_info),
         )
 
         array.forEach { pair ->
             pair.first?.background = ColorDrawable(Cyanea.instance.backgroundColorDark)
             pair.first?.setOnClickListener {
                 openSettingSubMenu(pair.second)
+            }
+        }
+
+        fv<android.widget.TextView>(R.id.settings_capture)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { startActivity(Intent(it, CapturePrivacyActivity::class.java)) }
+            }
+        }
+
+        fv<android.widget.TextView>(R.id.settings_identity)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { startActivity(Intent(it, AppIdentityActivity::class.java)) }
+            }
+        }
+
+        fv<android.widget.TextView>(R.id.settings_home)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { startActivity(Intent(it, HomeSettingsActivity::class.java)) }
+            }
+        }
+
+        fv<android.widget.TextView>(R.id.settings_integrations)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { startActivity(Intent(it, IntegrationsActivity::class.java)) }
+            }
+        }
+
+        // Extensions opens its own activity (repo + plugin management),
+        // not a preference-xml submenu
+        fv<android.widget.TextView>(R.id.settings_extensions)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { startActivity(Intent(it, ExtensionManagerActivity::class.java)) }
+            }
+        }
+
+        fv<android.widget.TextView>(R.id.settings_manga)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { startActivity(Intent(it, com.lagradost.shiro.ui.manga.MangaBrowseActivity::class.java)) }
+            }
+        }
+
+        fv<android.widget.TextView>(R.id.settings_dmca)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { LegalPageActivity.open(it, LegalPageActivity.DMCA) }
+            }
+        }
+
+        fv<android.widget.TextView>(R.id.settings_about)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { startActivity(Intent(it, AboutActivity::class.java)) }
+            }
+        }
+
+        setupSettingsSearch()
+
+        fv<android.widget.TextView>(R.id.settings_community_rules)?.apply {
+            background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+            setOnClickListener {
+                context?.let { LegalPageActivity.open(it, LegalPageActivity.RULES) }
             }
         }
 
@@ -95,8 +173,8 @@ class SettingsFragmentNew : Fragment() {
             LinearLayout.LayoutParams.MATCH_PARENT, // view width
             MainActivity.statusHeight // view height
         )
-        top_padding_settings?.layoutParams = topParams
-        settings_root?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<android.view.View>(R.id.top_padding_settings)?.layoutParams = topParams
+        fv<android.widget.LinearLayout>(R.id.settings_root)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
 
         if (tvActivity == null) {
             // Because the user isn't necessarily fetched
@@ -146,32 +224,76 @@ class SettingsFragmentNew : Fragment() {
         }
 
         if (userName != null) {
-            name_text?.text = userName
-            name_text?.visibility = VISIBLE
+            fv<android.widget.TextView>(R.id.name_text)?.text = userName
+            fv<android.widget.TextView>(R.id.name_text)?.visibility = VISIBLE
         } else {
-            name_text?.visibility = INVISIBLE
+            fv<android.widget.TextView>(R.id.name_text)?.visibility = INVISIBLE
         }
 
-        icon_image?.setOnClickListener {
-            name_text?.isVisible = !(name_text?.isVisible ?: false)
+        fv<android.widget.ImageView>(R.id.icon_image)?.setOnClickListener {
+            fv<android.widget.TextView>(R.id.name_text)?.isVisible = !(fv<android.widget.TextView>(R.id.name_text)?.isVisible ?: false)
         }
 
         context?.let { context ->
-            icon_image?.let {
+            fv<android.widget.ImageView>(R.id.icon_image)?.let {
                 GlideApp.with(context)
                     .load(userImage ?: "")
                     .transition(DrawableTransitionOptions.withCrossFade(100))
-                    .error(R.drawable.shiro_logo_rounded)
+                    .error(R.drawable.nekomo_logo)
                     .into(it)
             }
         }
     }
 
-    private fun openSettingSubMenu(xml: Int) {
-        val intent = Intent(getCurrentActivity()!!, SettingsActivity::class.java).apply {
+    private fun openSettingSubMenu(xml: Int, highlight: String? = null) {
+        val intent = Intent(context ?: return, SettingsActivity::class.java).apply {
             putExtra(XML_KEY, xml)
+            if (highlight != null) putExtra(HIGHLIGHT_KEY, highlight)
         }
         startActivity(intent)
+    }
+
+    /** Live-filtered jump list over every preference key and every management screen. */
+    private fun setupSettingsSearch() {
+        val box = fv<android.widget.EditText>(R.id.settings_search) ?: return
+        val results = fv<LinearLayout>(R.id.settings_search_results) ?: return
+        val ctx = context ?: return
+        val pad = (20 * resources.displayMetrics.density).toInt()
+        box.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val hits = com.lagradost.shiro.utils.SettingsSearch.search(ctx, s?.toString() ?: "")
+                results.removeAllViews()
+                results.isVisible = hits.isNotEmpty()
+                hits.take(12).forEach { e ->
+                    results.addView(LinearLayout(ctx).apply {
+                        orientation = LinearLayout.VERTICAL
+                        setPadding(pad, pad / 2, pad, pad / 2)
+                        isClickable = true
+                        isFocusable = true
+                        val out = android.util.TypedValue()
+                        ctx.theme.resolveAttribute(android.R.attr.selectableItemBackgroundBorderless, out, true)
+                        foreground = androidx.core.content.ContextCompat.getDrawable(ctx, out.resourceId)
+                        addView(android.widget.TextView(ctx).apply {
+                            text = e.title
+                            textSize = 15f
+                        })
+                        addView(android.widget.TextView(ctx).apply {
+                            text = listOfNotNull(e.screen, e.summary.takeIf { it.isNotBlank() }).joinToString("  ·  ")
+                            textSize = 12f
+                            alpha = 0.65f
+                            maxLines = 1
+                            ellipsize = android.text.TextUtils.TruncateAt.END
+                        })
+                        setOnClickListener {
+                            if (e.xmlRes != null) openSettingSubMenu(e.xmlRes, e.key)
+                            else e.activity?.let { startActivity(Intent(ctx, it)) }
+                        }
+                    })
+                }
+            }
+        })
     }
 
     override fun onDestroy() {
@@ -180,7 +302,7 @@ class SettingsFragmentNew : Fragment() {
     }
 
     override fun onResume() {
-        val settingsManager = PreferenceManager.getDefaultSharedPreferences(activity)
+        val settingsManager = PreferenceManager.getDefaultSharedPreferences(requireContext())
         activity?.changeStatusBarState(settingsManager.getBoolean("statusbar_hidden", true))?.let {
             statusHeight = it
         }
@@ -190,7 +312,7 @@ class SettingsFragmentNew : Fragment() {
             activity?.requestedOrientation = if (settingsManager.getBoolean("force_landscape", false)) {
                 ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
             } else {
-                ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                ActivityInfo.SCREEN_ORIENTATION_USER
             }
         }
         super.onResume()

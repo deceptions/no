@@ -58,7 +58,7 @@ class VideoDownloadKeepAliveService : Service() {
 
             // ADD QUEUE
             val resumeQueue =
-                this.getKey<List<VideoDownloadManager.DownloadQueueResumePackage>>(VideoDownloadManager.KEY_RESUME_QUEUE_PACKAGES)
+                this.getKey<Array<VideoDownloadManager.DownloadQueueResumePackage>>(VideoDownloadManager.KEY_RESUME_QUEUE_PACKAGES)
             if (resumeQueue != null && resumeQueue.isNotEmpty()) {
                 val sorted = resumeQueue.sortedBy { item -> item.index }
                 for (queueItem in sorted) {

@@ -10,10 +10,9 @@ import com.google.android.gms.cast.framework.media.MediaIntentReceiver
 import com.google.android.gms.cast.framework.media.NotificationOptions
 import com.lagradost.shiro.R
 import com.lagradost.shiro.ui.ControllerActivity
-import java.util.*
 
 class CastOptionsProvider : OptionsProvider {
-    override fun getCastOptions(p0: Context?): CastOptions {
+    override fun getCastOptions(context: Context): CastOptions {
         val buttonActions = listOf(
             MediaIntentReceiver.ACTION_REWIND,
             MediaIntentReceiver.ACTION_TOGGLE_PLAYBACK,
@@ -23,7 +22,7 @@ class CastOptionsProvider : OptionsProvider {
         val compatButtonAction = intArrayOf(1,3)
         val notificationOptions =
             NotificationOptions.Builder()
-                .setTargetActivityClassName(ControllerActivity::class.qualifiedName)
+                .setTargetActivityClassName(ControllerActivity::class.java.name)
                 .setActions(buttonActions, compatButtonAction)
                 .setForward30DrawableResId(R.drawable.go_forward_30)
                 .setRewind30DrawableResId(R.drawable.go_back_30)
@@ -32,7 +31,7 @@ class CastOptionsProvider : OptionsProvider {
 
         val mediaOptions = CastMediaOptions.Builder()
             .setNotificationOptions(notificationOptions)
-            .setExpandedControllerActivityClassName(ControllerActivity::class.qualifiedName)
+            .setExpandedControllerActivityClassName(ControllerActivity::class.java.name)
             .build()
 
         return CastOptions.Builder()
@@ -42,7 +41,7 @@ class CastOptionsProvider : OptionsProvider {
             .build()
     }
 
-    override fun getAdditionalSessionProviders(p0: Context?): MutableList<SessionProvider> {
-        return Collections.emptyList()
+    override fun getAdditionalSessionProviders(context: Context): MutableList<SessionProvider>? {
+        return null
     }
 }

@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.search
+import com.lagradost.shiro.utils.fv
 
 import BOOKMARK_KEY
 import DataStore.containsKey
@@ -33,18 +34,14 @@ import com.lagradost.shiro.utils.AppUtils.guaranteedContext
 import com.lagradost.shiro.utils.AppUtils.loadPage
 import com.lagradost.shiro.utils.AppUtils.onLongCardClick
 import com.lagradost.shiro.utils.AppUtils.settingsManager
-import com.lagradost.shiro.utils.ShiroApi
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFav
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFullUrlCdn
-import kotlinx.android.synthetic.main.search_result.view.*
-import kotlinx.android.synthetic.main.search_result.view.imageText
-import kotlinx.android.synthetic.main.search_result.view.imageView
-import kotlinx.android.synthetic.main.search_result_compact.view.*
+import com.lagradost.shiro.utils.NekomoApi
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFav
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFullUrlCdn
 import kotlin.concurrent.thread
 import kotlin.math.roundToInt
 
 class ResAdapter(
-    animeList: ArrayList<ShiroApi.CommonAnimePage>,
+    animeList: ArrayList<NekomoApi.CommonAnimePage>,
     val resView: AutofitRecyclerView,
     val isMalId: Boolean,
     forceDisableCompact: Boolean = false
@@ -58,12 +55,9 @@ class ResAdapter(
         cardList = ArrayList(filterCardList(cardList) ?: listOf())
 
         val layout = if (compactView) R.layout.search_result_compact else R.layout.search_result
-        return CardViewHolder(
-            LayoutInflater.from(parent.context).inflate(layout, parent, false),
-            resView,
-            isMalId,
-            compactView
-        )
+        val view = LayoutInflater.from(parent.context).inflate(layout, parent, false)
+        com.lagradost.shiro.utils.UiStyle.restyle(view)
+        return CardViewHolder(view, resView, isMalId, compactView)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
@@ -82,24 +76,24 @@ class ResAdapter(
     class CardViewHolder
     constructor(itemView: View, resView: AutofitRecyclerView, private val isMalId: Boolean, private val compactView: Boolean) :
         RecyclerView.ViewHolder(itemView) {
-        val cardView: ImageView = itemView.imageView
+        val cardView: ImageView = itemView.fv<android.widget.ImageView>(R.id.imageView)
         private val coverHeight: Int = if (compactView) 80.toPx else (resView.itemWidth / 0.68).roundToInt()
         val context = guaranteedContext(itemView.context)
 
-        fun bind(card: ShiroApi.CommonAnimePage) {
+        fun bind(card: NekomoApi.CommonAnimePage) {
             if (compactView) {
                 // COPIED -----------------------------------------
                 var isBookmarked = context.containsKey(BOOKMARK_KEY, card.slug)
                 fun toggleHeartVisual(_isBookmarked: Boolean) {
                     if (_isBookmarked) {
-                        itemView.title_bookmark.setImageResource(R.drawable.filled_heart)
+                        itemView.fv<android.widget.ImageView>(R.id.title_bookmark).setImageResource(R.drawable.filled_heart)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            itemView.title_bookmark.imageTintList = ColorStateList.valueOf(Cyanea.instance.primary)
+                            itemView.fv<android.widget.ImageView>(R.id.title_bookmark).imageTintList = ColorStateList.valueOf(Cyanea.instance.primary)
                         }
                     } else {
-                        itemView.title_bookmark.setImageResource(R.drawable.outlined_heart)
+                        itemView.fv<android.widget.ImageView>(R.id.title_bookmark).setImageResource(R.drawable.outlined_heart)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                            itemView.title_bookmark.imageTintList =
+                            itemView.fv<android.widget.ImageView>(R.id.title_bookmark).imageTintList =
                                 ColorStateList.valueOf(context.getColorFromAttr(R.attr.white))
                         }
                     }
@@ -128,17 +122,17 @@ class ResAdapter(
                     }
                 }
                 toggleHeartVisual(isBookmarked)
-                itemView.bookmark_holder.setOnClickListener {
+                itemView.fv<android.widget.ImageView>(R.id.bookmark_holder).setOnClickListener {
                     toggleHeart(!isBookmarked)
                 }
                 // ------------------------------------------------
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    itemView.backgroundCard.backgroundTintList = ColorStateList.valueOf(
+                    itemView.fv<androidx.cardview.widget.CardView>(R.id.backgroundCard).backgroundTintList = ColorStateList.valueOf(
                         Cyanea.instance.backgroundColorDark
                     )
                 }
 
-                itemView.backgroundCard.setOnClickListener {
+                itemView.fv<androidx.cardview.widget.CardView>(R.id.backgroundCard).setOnClickListener {
                     getCurrentActivity()?.loadPage(card.slug, card.name, isMalId)
                 }
                 cardView.setOnLongClickListener {
@@ -162,13 +156,14 @@ class ResAdapter(
                     coverHeight
                 )
             }
-            itemView.search_result_card?.setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
-            itemView.imageText?.text = fixCardTitle(card.name)
+            itemView.fv<androidx.cardview.widget.CardView>(R.id.search_result_card).setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
+            itemView.findViewById<androidx.cardview.widget.CardView>(R.id.backgroundCard)?.setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
+            itemView.fv<android.widget.TextView>(R.id.imageText)?.text = fixCardTitle(card.name)
             if (card.english != null) {
-                itemView.imageSubText?.visibility = VISIBLE
-                itemView.imageSubText?.text = fixCardTitle(card.english!!)
+                itemView.fv<android.widget.TextView>(R.id.imageSubText)?.visibility = VISIBLE
+                itemView.fv<android.widget.TextView>(R.id.imageSubText)?.text = fixCardTitle(card.english!!)
             } else {
-                itemView.imageSubText?.visibility = GONE
+                itemView.fv<android.widget.TextView>(R.id.imageSubText)?.visibility = GONE
             }
 
             cardView.setOnClickListener {

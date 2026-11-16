@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.home
+import com.lagradost.shiro.utils.fv
 
 import android.view.LayoutInflater
 import android.view.View
@@ -21,34 +22,38 @@ import com.lagradost.shiro.ui.tv.TvActivity.Companion.tvActivity
 import com.lagradost.shiro.utils.AppUtils.fixCardTitle
 import com.lagradost.shiro.utils.AppUtils.loadPage
 import com.lagradost.shiro.utils.AppUtils.onLongCardClick
-import com.lagradost.shiro.utils.ShiroApi
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFullUrlCdn
-import kotlinx.android.synthetic.main.home_card.view.*
+import com.lagradost.shiro.utils.NekomoApi
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFullUrlCdn
 
 
 class CardAdapter(
     context: FragmentActivity,
-    animeList: ArrayList<ShiroApi.CommonAnimePage?>,
+    animeList: ArrayList<NekomoApi.CommonAnimePage?>,
     private val isOnTop: Boolean = false
 ) :
     RecyclerView.Adapter<RecyclerView.ViewHolder>() {
     var cardList = animeList
     var activity: FragmentActivity? = context
 
+    private var lastAnimated = -1
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
-        return CardViewHolder(
-            LayoutInflater.from(parent.context).inflate(R.layout.home_card, parent, false),
-            activity!!
-        )
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.home_card, parent, false)
+        com.lagradost.shiro.utils.UiStyle.restyle(view)
+        return CardViewHolder(view, activity!!)
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
         when (holder) {
             is CardViewHolder -> {
+                val animate = com.lagradost.shiro.utils.UiStyle.animateCards(holder.itemView.context) &&
+                        position > lastAnimated
+                com.lagradost.shiro.utils.UiStyle.entrance(holder.itemView, animate)
+                lastAnimated = maxOf(lastAnimated, position)
                 holder.bind(cardList[position])
             }
         }
-        holder.itemView.home_card?.setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
+        holder.itemView.fv<androidx.cardview.widget.CardView>(R.id.home_card)?.setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
         holder.itemView.setOnFocusChangeListener { v, hasFocus ->
             val toSize = if (hasFocus) 1.1f else 1.0f
             val fromSize = if (!hasFocus) 1.1f else 1.0f
@@ -66,7 +71,8 @@ class CardAdapter(
             animation.isFillEnabled = true
             animation.fillAfter = true
             v.startAnimation(animation)
-            v.home_card.radius = if (hasFocus) 0F else 6.toPx.toFloat()
+            v.fv<androidx.cardview.widget.CardView>(R.id.home_card).radius =
+                if (hasFocus) 0F else com.lagradost.shiro.utils.UiStyle.cardRadiusPx(v.context)
             if (isOnTop) {
                 activity?.findViewById<View>(R.id.tv_menu_bar)?.visibility = VISIBLE
             } else {
@@ -84,7 +90,7 @@ class CardAdapter(
         val context = _context
         val card: View = itemView
 
-        fun bind(cardInfo: ShiroApi.CommonAnimePage?) {
+        fun bind(cardInfo: NekomoApi.CommonAnimePage?) {
             val param = card.layoutParams as ViewGroup.MarginLayoutParams
 
             if (tvActivity != null) {
@@ -107,19 +113,19 @@ class CardAdapter(
                         .load(glideUrl)
                         .transition(DrawableTransitionOptions.withCrossFade(100))
                         .onlyRetrieveFromCache(savingData)
-                        .into(card.imageView)
+                        .into(card.fv<android.widget.ImageView>(R.id.imageView))
                 }
                 itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).start()
-                itemView.imageText?.text = fixCardTitle(cardInfo.name)
+                itemView.fv<android.widget.TextView>(R.id.imageText)?.text = fixCardTitle(cardInfo.name)
 
-                itemView.home_card_root.setOnLongClickListener {
+                itemView.fv<android.widget.LinearLayout>(R.id.home_card_root).setOnLongClickListener {
                     itemView.scaleY = 0.9f
                     itemView.scaleX = 0.9f
                     itemView.animate().scaleX(1.0f).scaleY(1.0f).setDuration(300).start()
                     context.onLongCardClick(cardInfo)
                     return@setOnLongClickListener true
                 }
-                itemView.home_card_root.setOnClickListener {
+                itemView.fv<android.widget.LinearLayout>(R.id.home_card_root).setOnClickListener {
                     context.loadPage(
                         cardInfo.slug,
                         cardInfo.name,

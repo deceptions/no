@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="welcome_tagline">Track your list and watch or read from the sources you add yourself.</string>
+    <string name="rules_title">Please make sure to follow the community rules.</string>
+    <string name="rules_body">Be respectful to other users, avoid harassment or inappropriate content, and do not spam. By continuing, you agree to follow the app\'s rules and guidelines.</string>
+    <string name="rules_button">I Understand and Continue</string>
+</resources>

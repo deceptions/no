@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Launch window background for the phone and TV launchers (SplashTheme on MainActivity/TvActivity):
+     dark brand background, soft purple glow, centered Nekomo mark. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item>
+        <shape android:shape="rectangle">
+            <solid android:color="#0d0714"/>
+        </shape>
+    </item>
+    <item
+            android:width="300dp"
+            android:height="300dp"
+            android:gravity="center">
+        <shape android:shape="oval">
+            <gradient
+                    android:type="radial"
+                    android:gradientRadius="150dp"
+                    android:centerColor="#597c3aed"
+                    android:endColor="#000d0714"/>
+        </shape>
+    </item>
+    <item
+            android:width="144dp"
+            android:height="144dp"
+            android:gravity="center"
+            android:drawable="@drawable/nekomo_logo"/>
+</layer-list>

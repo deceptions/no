@@ -480,9 +480,15 @@
             />
 
         </LinearLayout>
+        <HorizontalScrollView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:fillViewport="true"
+                android:scrollbars="none"
+                android:overScrollMode="never">
         <LinearLayout
                 android:id="@+id/bottom_player_bar_button_holder"
-                android:layout_width="match_parent"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center"
@@ -493,8 +499,8 @@
                     android:layout_height="match_parent"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
                     card_view:cardCornerRadius="@dimen/card_corner_radius"
                     card_view:cardBackgroundColor="@color/transparent"
                     android:foreground="@drawable/ripple_always_white"
@@ -539,8 +545,8 @@
                     android:layout_height="match_parent"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
                     card_view:cardCornerRadius="@dimen/card_corner_radius"
                     card_view:cardBackgroundColor="@color/transparent"
                     android:foreground="@drawable/ripple_always_white"
@@ -582,8 +588,8 @@
                     android:layout_height="match_parent"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
                     card_view:cardCornerRadius="@dimen/card_corner_radius"
                     card_view:cardBackgroundColor="@color/transparent"
                     android:foreground="@drawable/ripple_always_white"
@@ -628,8 +634,166 @@
                     android:layout_height="match_parent"
                     android:layout_marginTop="5dp"
                     android:layout_marginBottom="5dp"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    card_view:cardCornerRadius="@dimen/card_corner_radius"
+                    card_view:cardBackgroundColor="@color/transparent"
+                    android:foreground="@drawable/ripple_always_white"
+                    android:id="@+id/subtitles_btt"
+                    card_view:cardElevation="0dp"
+            >
+                <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                >
+                    <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_baseline_subtitles_24"
+                            app:tint="@color/white"
+                            android:layout_gravity="center"/>
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="Subtitles"
+                            android:id="@+id/subtitles_text"
+                            android:gravity="center"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:layout_gravity="center"
+                            android:textColor="@color/white"
+                            android:singleLine="true"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <androidx.cardview.widget.CardView
+                    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    card_view:cardCornerRadius="@dimen/card_corner_radius"
+                    card_view:cardBackgroundColor="@color/transparent"
+                    android:foreground="@drawable/ripple_always_white"
+                    android:id="@+id/watch_together_btt"
+                    card_view:cardElevation="0dp"
+            >
+                <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                >
+                    <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_baseline_sync_24"
+                            app:tint="@color/white"
+                            android:layout_gravity="center"/>
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="Together"
+                            android:id="@+id/watch_together_text"
+                            android:gravity="center"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:layout_gravity="center"
+                            android:textColor="@color/white"
+                            android:singleLine="true"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <androidx.cardview.widget.CardView
+                    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    card_view:cardCornerRadius="@dimen/card_corner_radius"
+                    card_view:cardBackgroundColor="@color/transparent"
+                    android:foreground="@drawable/ripple_always_white"
+                    android:id="@+id/popout_btt"
+                    card_view:cardElevation="0dp"
+            >
+                <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                >
+                    <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_baseline_picture_in_picture_alt_24"
+                            app:tint="@color/white"
+                            android:layout_gravity="center"/>
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="Pop-out"
+                            android:gravity="center"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:layout_gravity="center"
+                            android:textColor="@color/white"
+                            android:singleLine="true"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <androidx.cardview.widget.CardView
+                    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
+                    card_view:cardCornerRadius="@dimen/card_corner_radius"
+                    card_view:cardBackgroundColor="@color/transparent"
+                    android:foreground="@drawable/ripple_always_white"
+                    android:id="@+id/external_btt"
+                    card_view:cardElevation="0dp"
+            >
+                <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="match_parent"
+                        android:orientation="horizontal"
+                        android:paddingStart="10dp"
+                        android:paddingEnd="10dp"
+                >
+                    <ImageView
+                            android:layout_width="24dp"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/ic_baseline_open_in_browser_24"
+                            app:tint="@color/white"
+                            android:layout_gravity="center"/>
+                    <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="match_parent"
+                            android:text="External"
+                            android:gravity="center"
+                            android:paddingStart="10dp"
+                            android:paddingEnd="10dp"
+                            android:layout_gravity="center"
+                            android:textColor="@color/white"
+                            android:singleLine="true"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+            <androidx.cardview.widget.CardView
+                    xmlns:card_view="http://schemas.android.com/apk/res-auto"
+                    android:layout_width="wrap_content"
+                    android:layout_height="match_parent"
+                    android:layout_marginTop="5dp"
+                    android:layout_marginBottom="5dp"
+                    android:layout_marginStart="10dp"
+                    android:layout_marginEnd="10dp"
                     card_view:cardCornerRadius="@dimen/card_corner_radius"
                     card_view:cardBackgroundColor="@color/transparent"
                     android:foreground="@drawable/ripple_always_white"
@@ -667,6 +831,7 @@
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
         </LinearLayout>
+        </HorizontalScrollView>
     </LinearLayout>
 
     <View android:layout_width="match_parent"
@@ -860,5 +1025,18 @@
 
             </androidx.cardview.widget.CardView>
         </LinearLayout>
+        <TextView
+                android:id="@+id/player_stats_overlay"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|start"
+                android:layout_margin="12dp"
+                android:background="#66000000"
+                android:padding="8dp"
+                android:textColor="@color/white"
+                android:textSize="12sp"
+                android:typeface="monospace"
+                android:visibility="gone"
+        />
     </FrameLayout>
 </FrameLayout>

@@ -15,6 +15,7 @@ import com.jaredrummler.cyanea.Cyanea
 import com.jaredrummler.cyanea.app.CyaneaAppCompatActivity
 import com.jaredrummler.cyanea.prefs.CyaneaTheme
 import com.lagradost.shiro.R
+import com.lagradost.shiro.utils.auth.AuthManager
 import com.lagradost.shiro.ui.MainActivity.Companion.canShowPipMode
 import com.lagradost.shiro.ui.MainActivity.Companion.focusRequest
 import com.lagradost.shiro.ui.MainActivity.Companion.masterViewModel
@@ -57,6 +58,11 @@ class PlayerActivity : CyaneaAppCompatActivity() {
     @SuppressLint("MissingSuperCall")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (!AuthManager.canEnter(this)) {
+            packageManager.getLaunchIntentForPackage(packageName)?.let { startActivity(it) }
+            finish()
+            return
+        }
         val data = intent.data
         if (data == null) {
             finish()

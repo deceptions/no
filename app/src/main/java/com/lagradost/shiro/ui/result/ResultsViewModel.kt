@@ -21,12 +21,13 @@ import com.lagradost.shiro.utils.AniListApi.Companion.fromIntToAnimeStatus
 import com.lagradost.shiro.utils.AniListApi.Companion.getDataAboutId
 import com.lagradost.shiro.utils.AniListApi.Companion.getShowId
 import com.lagradost.shiro.utils.AniListApi.Companion.postDataAboutId
+import com.lagradost.shiro.utils.integrations.TrackerSync
 import com.lagradost.shiro.utils.AppUtils.guaranteedContext
 import com.lagradost.shiro.utils.MALApi.Companion.getDataAboutMalId
 import com.lagradost.shiro.utils.MALApi.Companion.malStatusAsString
 import com.lagradost.shiro.utils.MALApi.Companion.setScoreRequest
-import com.lagradost.shiro.utils.ShiroApi.Companion.getAnimePageNew
-import com.lagradost.shiro.utils.ShiroApi.Companion.getAnimePageNewMal
+import com.lagradost.shiro.utils.NekomoApi.Companion.getAnimePageNew
+import com.lagradost.shiro.utils.NekomoApi.Companion.getAnimePageNewMal
 import kotlin.concurrent.thread
 
 data class SyncData(
@@ -50,10 +51,10 @@ class ResultsViewModel : ViewModel() {
     private var lastMalId: Int? = null
     private var lastAnilistId: Int? = null
 
-    private val dataSubbed = MutableLiveData<ShiroApi.Companion.AnimePageNewData?>()
-    private val dataDubbed = MutableLiveData<ShiroApi.Companion.AnimePageNewData?>()
-    private val _data = MutableLiveData<ShiroApi.Companion.AnimePageNewData?>()
-    val data: LiveData<ShiroApi.Companion.AnimePageNewData?> = _data
+    private val dataSubbed = MutableLiveData<NekomoApi.Companion.AnimePageNewData?>()
+    private val dataDubbed = MutableLiveData<NekomoApi.Companion.AnimePageNewData?>()
+    private val _data = MutableLiveData<NekomoApi.Companion.AnimePageNewData?>()
+    val data: LiveData<NekomoApi.Companion.AnimePageNewData?> = _data
     val recommendations = MutableLiveData<List<AniListApi.Recommendation>?>(null)
     val related = MutableLiveData<List<AniListApi.Recommendation>?>(null)
 
@@ -185,6 +186,13 @@ class ResultsViewModel : ViewModel() {
                     )
                 } else true
 
+            // Kitsu / SIMKL mirror of the edit (explicit edits may lower progress, so not monotonic)
+            if (TrackerSync.anyConnected(context)) {
+                TrackerSync.pushAndNotify(
+                    context, getMalId(), getAnilistId(), data.status, data.score, data.progress
+                )
+            }
+
             // TODO ERROR HANDLING
 
             if (malPost == true && anilistPost == true) {
@@ -193,7 +201,7 @@ class ResultsViewModel : ViewModel() {
         }
     }
 
-    private fun Context.assignData(data: ShiroApi.Companion.AnimePageNewData?) {
+    private fun Context.assignData(data: NekomoApi.Companion.AnimePageNewData?) {
         if (data == null) {
             _hasFailed.postValue(true)
             return
@@ -217,12 +225,13 @@ class ResultsViewModel : ViewModel() {
             val fixedAnilistId = anilistPage?.id ?: -1
             val fixedMalId = idMal?.toIntOrNull() ?: anilistPage?.idMal ?: -1
 
-            val localRecommendations = anilistPage?.recommendations?.nodes?.map {
+            val localRecommendations = anilistPage?.recommendations?.nodes?.mapNotNull { node ->
+                val rec = node.mediaRecommendation ?: return@mapNotNull null
                 AniListApi.Recommendation(
-                    it.mediaRecommendation.title.english ?: it.mediaRecommendation.title.romaji ?: "",
-                    it.mediaRecommendation.idMal ?: -1,
-                    it.mediaRecommendation.coverImage.large ?: it.mediaRecommendation.coverImage.medium,
-                    it.mediaRecommendation.averageScore
+                    rec.title.english ?: rec.title.romaji ?: "",
+                    rec.idMal ?: -1,
+                    rec.coverImage.large ?: rec.coverImage.medium,
+                    rec.averageScore
                 )
             } ?: listOf()
 

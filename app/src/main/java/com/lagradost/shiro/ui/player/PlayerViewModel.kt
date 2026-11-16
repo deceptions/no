@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import com.google.android.exoplayer2.video.VideoSize
 import com.lagradost.shiro.ui.BookmarkedTitle
 import com.lagradost.shiro.utils.ExtractorLink
-import com.lagradost.shiro.utils.ShiroApi
+import com.lagradost.shiro.utils.NekomoApi
 
 class PlayerViewModel : ViewModel() {
     val videoSize = MutableLiveData<VideoSize?>()

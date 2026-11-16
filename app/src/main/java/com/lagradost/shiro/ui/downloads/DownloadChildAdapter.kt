@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.downloads
+import com.lagradost.shiro.utils.fv
 
 import DataStore.containsKey
 import VIEWSTATE_KEY
@@ -21,7 +22,6 @@ import com.lagradost.shiro.utils.AppUtils.getViewKey
 import com.lagradost.shiro.utils.AppUtils.getViewPosDur
 import com.lagradost.shiro.utils.DownloadManager
 import com.lagradost.shiro.utils.VideoDownloadManager
-import kotlinx.android.synthetic.main.episode_result_downloaded.view.*
 import java.util.*
 
 
@@ -122,9 +122,9 @@ class DownloadChildAdapter(
                 downloadButton?.setUpButton(
                     downloadInfo?.fileLength,
                     downloadInfo?.totalBytes,
-                    itemView.progressBar,
-                    itemView.cdi,
-                    itemView.cardTitleExtra,
+                    itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progressBar),
+                    itemView.fv<android.widget.ImageView>(R.id.cdi),
+                    itemView.fv<android.widget.TextView>(R.id.cardTitleExtra),
                     allData
                 ) {
                     if (it.action == DOWNLOAD_ACTION_DOWNLOAD) {
@@ -151,9 +151,9 @@ class DownloadChildAdapter(
                     if (parent.fillerEpisodes?.get(child.episodeIndex + 1) == true) " (Filler) " else ""
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    itemView.progressBar.progressTintList = ColorStateList.valueOf(Cyanea.instance.primary)
-                    itemView.video_progress.progressTintList = ColorStateList.valueOf(getColorFromAttr(R.attr.white))
-                    itemView.cdi.imageTintList = ColorStateList.valueOf(getColorFromAttr(R.attr.white))
+                    itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progressBar).progressTintList = ColorStateList.valueOf(Cyanea.instance.primary)
+                    itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.video_progress).progressTintList = ColorStateList.valueOf(getColorFromAttr(R.attr.white))
+                    itemView.fv<android.widget.ImageView>(R.id.cdi).imageTintList = ColorStateList.valueOf(getColorFromAttr(R.attr.white))
                 }
 
                 val title = fixEpTitle(
@@ -195,22 +195,22 @@ class DownloadChildAdapter(
                 }
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    itemView.progressBar.progressTintList = ColorStateList.valueOf(Cyanea.instance.accent)
+                    itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progressBar).progressTintList = ColorStateList.valueOf(Cyanea.instance.accent)
                 }
 
                 val key = getViewKey(parent.slug, child.episodeIndex)
                 if (containsKey(VIEWSTATE_KEY, key)) {
-                    itemView.card_outline.setCardBackgroundColor(
+                    itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).setCardBackgroundColor(
                         Cyanea.instance.accent
                     )
-                    itemView.download_card_bg.setCardBackgroundColor(
+                    itemView.fv<androidx.cardview.widget.CardView>(R.id.download_card_bg).setCardBackgroundColor(
                         Cyanea.instance.backgroundColorDark
                     )
                 } else {
-                    itemView.card_outline.setCardBackgroundColor(
+                    itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).setCardBackgroundColor(
                         Cyanea.instance.backgroundColorLight
                     )
-                    itemView.download_card_bg.setCardBackgroundColor(
+                    itemView.fv<androidx.cardview.widget.CardView>(R.id.download_card_bg).setCardBackgroundColor(
                         Cyanea.instance.backgroundColor
                     )
                 }
@@ -223,12 +223,12 @@ class DownloadChildAdapter(
                     } else if (progress > 90) {
                         progress = 100
                     }
-                    itemView.video_progress?.progress = progress
+                    itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.video_progress)?.progress = progress
                 } else {
-                    itemView.video_progress?.alpha = 0f
+                    itemView.fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.video_progress)?.alpha = 0f
                 }
 
-                itemView.cardTitle?.text = title + fillerInfo
+                itemView.fv<android.widget.TextView>(R.id.cardTitle)?.text = title + fillerInfo
             }
         }
     }

@@ -3,40 +3,43 @@
         xmlns:android="http://schemas.android.com/apk/res/android"
         xmlns:app="http://schemas.android.com/apk/res-auto"
 >
-
-    <SwitchPreference
-            android:icon="@drawable/ic_baseline_screen_lock_landscape_24"
-            app:key="force_landscape"
-            android:title="Force landscape"
-            android:summary="Useful for tablets"
+    <PreferenceCategory android:title="Content">
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_filter_list_24"
+            app:key="search_include_sources"
+            android:title="Show source results in search"
+            android:summary="Off (recommended): search shows the built-in catalogue only, and your sources are used to stream. On: also list titles found directly in your installed sources."
             app:defaultValue="false"
     />
-    <!--
-    <SwitchPreference
-            android:icon="@drawable/ic_baseline_language_24"
-            app:key="hide_dubbed"
-            android:title="Hide all dubbed shows"
-            app:defaultValue="true"
-    />-->
-    <SwitchPreference
-            android:icon="@drawable/quantum_ic_refresh_white_24"
-            app:key="swipe_to_refresh"
-            android:title="Swipe to refresh in the homepage"
-            app:defaultValue="true"
+        <ListPreference
+            android:icon="@drawable/ic_baseline_playlist_play_24"
+            app:key="preferred_source"
+            android:title="Preferred source"
+            app:useSimpleSummaryProvider="true"
+            android:defaultValue="none"
     />
-    <SwitchPreference
-            android:icon="@drawable/ic_baseline_notifications_none_24"
-            app:key="show_subscribed"
-            android:title="Show subscribed shows in the homepage"
-            app:defaultValue="true"
+        <EditTextPreference
+            android:icon="@drawable/ic_baseline_filter_list_24"
+            app:key="tmdb_api_key"
+            android:title="TMDB API key (optional)"
+            android:summary="Adds movie and TV show details, posters and episode lists from TMDB. Get a free key at themoviedb.org/settings/api. It is stored only on this device. TV shows from TVMaze work without a key."
+            android:dialogMessage="Paste your TMDB API key (v3) or read access token (v4)."
     />
-    <!--<SwitchPreference
-            android:icon="@drawable/outlined_heart"
-            app:key="hold_to_favorite"
-            android:title="Hold to favorite"
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_filter_list_24"
+            app:key="non_anime_enabled"
+            android:title="Show movies and TV shows"
+            android:summary="Off (default): anime only everywhere, including the home page. On: sources for movies and series become available; their home page rows stay off until you enable them in Settings > Home page."
             app:defaultValue="false"
-    />-->
-    <ListPreference
+    />
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_filter_list_24"
+            app:key="nsfw_enabled"
+            android:title="Show 18+ sources and extensions"
+            android:summary="For ages 18+. Off by default. Includes adult sources and extensions in lists, search and the source chooser."
+            app:defaultValue="false"
+    />
+        <ListPreference
             android:title="Hide shows"
             app:key="hide_behavior"
             android:icon="@drawable/ic_baseline_language_24"
@@ -44,15 +47,42 @@
             android:entries="@array/HideBehavior"
             android:entryValues="@array/HideBehavior"
     />
-    <SwitchPreference
+        <SwitchPreference
             app:isPreferenceVisible="false"
             android:icon="@drawable/ic_baseline_language_24"
             app:key="hide_chinese"
             android:title="Hide chinese shows"
             app:defaultValue="false"
     />
-
-    <ListPreference
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_filter_list_24"
+            app:key="search_for_filler_episodes"
+            android:title="Search and display filler episodes"
+            app:defaultValue="true"
+            app:summary="Using animefillerlist.com"
+    />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Home and browsing">
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_screen_lock_landscape_24"
+            app:key="reduce_motion"
+            android:title="Reduce motion"
+            android:summary="Turns off fade and slide animations on the home page and info pages. Also follows your system animation setting."
+            app:defaultValue="false"
+    />
+        <SwitchPreference
+            android:icon="@drawable/quantum_ic_refresh_white_24"
+            app:key="swipe_to_refresh"
+            android:title="Swipe to refresh in the homepage"
+            app:defaultValue="true"
+    />
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_notifications_none_24"
+            app:key="show_subscribed"
+            android:title="Show subscribed shows in the homepage"
+            app:defaultValue="true"
+    />
+        <ListPreference
             android:title="Hold behavior"
             app:key="hold_behavior"
             android:icon="@drawable/ic_baseline_touch_app_24"
@@ -60,51 +90,32 @@
             android:entries="@array/LongClickOptions"
             android:entryValues="@array/LongClickOptions"
     />
-    <!--
-    <SwitchPreference
-            android:icon="@drawable/ic_baseline_storage_24"
-            app:key="use_external_storage"
-            android:title="Use external storage for downloads"
-            android:summaryOn="Files downloaded to Download/Shiro"
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_screen_lock_landscape_24"
+            app:key="force_landscape"
+            android:title="Force landscape"
+            android:summary="Useful for tablets"
             app:defaultValue="false"
-            app:isPreferenceVisible="false"
     />
-    -->
-    <SwitchPreference
+        <ListPreference
+            android:icon="@drawable/home_white"
+            app:key="startup_page"
+            android:title="Start on page"
+            android:summary="Which tab opens when you launch the app"
+            app:entries="@array/StartupPages"
+            app:entryValues="@array/StartupPageValues"
+            app:defaultValue="home"
+            app:useSimpleSummaryProvider="true"
+    />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Downloads and data">
+        <SwitchPreference
             android:icon="@drawable/netflix_download"
             app:key="pick_downloads"
             android:title="Pick download source manually"
             app:defaultValue="false"
     />
-    <SwitchPreference
-            app:key="subscribe_to_announcements"
-            android:title="Subscribe to announcement notifications"
-            app:summary="For example site downtime"
-            app:defaultValue="false"
-            android:icon="@drawable/ic_baseline_notifications_active_24"
-    />
-    <SwitchPreference
-            android:icon="@drawable/ic_baseline_data_saver_on_24"
-            app:key="data_saving"
-            android:title="Data Saver"
-            android:summary="Only loads images from cache"
-            app:defaultValue="false"
-    />
-    <SwitchPreference
-            android:icon="@drawable/ic_baseline_data_saver_on_24"
-            app:key="disable_data_downloads"
-            android:title="Disable downloads on mobile data"
-            android:summary="The queue will be automatically paused when any downloads are made with data"
-            app:defaultValue="false"
-    />
-    <SwitchPreference
-            android:icon="@drawable/ic_baseline_filter_list_24"
-            app:key="search_for_filler_episodes"
-            android:title="Search and display filler episodes"
-            app:defaultValue="true"
-            app:summary="Using animefillerlist.com"
-    />
-    <SeekBarPreference
+        <SeekBarPreference
             android:icon="@drawable/netflix_download"
             android:title="Max concurrent downloads"
             android:defaultValue="1"
@@ -116,11 +127,176 @@
             android:summary="More concurrent downloads will lag a lot on low-end phones. This will only be applied after an app restart."
     >
     </SeekBarPreference>
-    <SwitchPreference android:key="acra.disable"
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_data_saver_on_24"
+            app:key="data_saving"
+            android:title="Data Saver"
+            android:summary="Only loads images from cache"
+            app:defaultValue="false"
+    />
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_data_saver_on_24"
+            app:key="disable_data_downloads"
+            android:title="Disable downloads on mobile data"
+            android:summary="The queue will be automatically paused when any downloads are made with data"
+            app:defaultValue="false"
+    />
+        <ListPreference
+            android:title="DNS over HTTPS"
+            app:key="dns_provider"
+            android:icon="@drawable/ic_baseline_language_24"
+            app:useSimpleSummaryProvider="true"
+            android:entries="@array/DnsProviders"
+            android:entryValues="@array/DnsProviders"
+            android:defaultValue="@string/dns_provider_disabled"
+    />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Manga reader">
+        <ListPreference
+            android:icon="@drawable/ic_baseline_view_list_24"
+            app:key="manga_reader_mode"
+            android:title="Reading mode"
+            android:summary="Continuous scroll suits webtoons; paged modes suit page-by-page manga. Can also be changed from the gear button inside the reader."
+            app:entries="@array/MangaReaderModes"
+            app:entryValues="@array/MangaReaderModeValues"
+            app:defaultValue="webtoon"
+            app:useSimpleSummaryProvider="true"
+    />
+        <ListPreference
+            android:icon="@drawable/ic_baseline_format_paint_24"
+            app:key="manga_reader_bg"
+            android:title="Reader background"
+            app:entries="@array/MangaReaderBgs"
+            app:entryValues="@array/MangaReaderBgValues"
+            app:defaultValue="black"
+            app:useSimpleSummaryProvider="true"
+    />
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_tune_24"
+            app:key="manga_volume_keys"
+            android:title="Volume keys turn pages"
+            app:defaultValue="true"
+    />
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_fullscreen_24"
+            app:key="manga_keep_screen_on"
+            android:title="Keep screen on while reading"
+            app:defaultValue="true"
+    />
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_fullscreen_24"
+            app:key="manga_immersive"
+            android:title="Fullscreen reading"
+            android:summary="Hide the status and navigation bars inside the reader"
+            app:defaultValue="true"
+    />
+        <SwitchPreference
+            android:icon="@drawable/ic_baseline_history_24"
+            app:key="manga_remember_position"
+            android:title="Remember position per chapter"
+            app:defaultValue="true"
+    />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Notifications and diagnostics">
+        <SwitchPreference
+            app:key="notify_new_episodes"
+            android:title="New episode alerts"
+            android:summary="Checks twice a day for new episodes of shows you subscribed to and sends a notification"
+            app:defaultValue="false"
+            android:icon="@drawable/ic_baseline_notifications_active_24"
+    />
+        <SwitchPreference
+            app:key="quiet_hours_enabled"
+            android:title="Quiet hours"
+            android:summary="No episode alerts between the hours below (they are reported on the next check instead)"
+            app:defaultValue="false"
+            android:icon="@drawable/ic_baseline_notifications_none_24"
+    />
+        <SeekBarPreference
+            app:key="quiet_start_hour"
+            android:title="Quiet hours start"
+            android:defaultValue="23"
+            android:max="23"
+            app:min="0"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="1"
+            app:dependency="quiet_hours_enabled"
+            android:icon="@drawable/ic_baseline_access_time_24"
+    />
+        <SeekBarPreference
+            app:key="quiet_end_hour"
+            android:title="Quiet hours end"
+            android:defaultValue="7"
+            android:max="23"
+            app:min="0"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="1"
+            app:dependency="quiet_hours_enabled"
+            android:icon="@drawable/ic_baseline_access_time_24"
+    />
+        <SwitchPreference
+            app:key="subscribe_to_announcements"
+            android:title="Subscribe to announcement notifications"
+            app:summary="For example site downtime"
+            app:defaultValue="false"
+            android:icon="@drawable/ic_baseline_notifications_active_24"
+    />
+        <SwitchPreference android:key="acra.disable"
                       android:icon="@drawable/ic_baseline_bug_report_24"
                       android:title="@string/pref_disable_acra"
                       android:summaryOff="Only sends data on crashes"
                       android:summaryOn="Sends no data"
                       android:defaultValue="false"/>
+    </PreferenceCategory>
 
+    <PreferenceCategory android:title="Advanced &amp; diagnostics">
+        <SwitchPreference
+                android:icon="@drawable/ic_baseline_code_24"
+                app:key="experimental_features"
+                android:title="Experimental features"
+                android:summary="Enables work-in-progress features. May be unstable"
+                app:defaultValue="false"
+        />
+        <Preference
+                android:icon="@drawable/ic_baseline_access_time_24"
+                app:key="adv_error_log"
+                android:title="Error log"
+                android:summary="View, copy or share the on-device error log"
+        />
+        <Preference
+                android:icon="@drawable/ic_baseline_code_24"
+                app:key="adv_diagnostics"
+                android:title="Copy diagnostics"
+                android:summary="Copies app + device build info to the clipboard for bug reports"
+        />
+        <Preference
+                android:icon="@drawable/ic_baseline_delete_outline_24"
+                app:key="adv_cache_clear"
+                android:title="Clear playback + image caches"
+                android:summary="Frees space used by the video and image caches (keeps downloads)"
+        />
+    </PreferenceCategory>
+    <!--
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_language_24"
+            app:key="hide_dubbed"
+            android:title="Hide all dubbed shows"
+            app:defaultValue="true"
+    />-->
+    <!--<SwitchPreference
+            android:icon="@drawable/outlined_heart"
+            app:key="hold_to_favorite"
+            android:title="Hold to favorite"
+            app:defaultValue="false"
+    />-->
+    <!--
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_storage_24"
+            app:key="use_external_storage"
+            android:title="Use external storage for downloads"
+            android:summaryOn="Files downloaded to Download/Nekomo"
+            app:defaultValue="false"
+            app:isPreferenceVisible="false"
+    />
+    -->
 </PreferenceScreen>

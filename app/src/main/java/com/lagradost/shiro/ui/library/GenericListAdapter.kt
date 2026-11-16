@@ -24,7 +24,7 @@ class BaseItemCallback<T : Any> : DiffUtil.ItemCallback<T>() {
 // https://proandroiddev.com/generic-listadapter-with-kotlin-write-once-use-more-recyclerview-viewpager-6314cbdced36
 abstract class GenericListAdapter<T : Any>(
     val layoutId: Int,
-    inline val bind: (item: T, holder: BaseViewHolder, itemCount: Int) -> Unit
+    val bind: (item: T, holder: BaseViewHolder, itemCount: Int) -> Unit
 ) : ListAdapter<T, BaseViewHolder>(BaseItemCallback<T>()) {
     override fun onBindViewHolder(holder: BaseViewHolder, position: Int) {
         bind(getItem(position), holder, itemCount)

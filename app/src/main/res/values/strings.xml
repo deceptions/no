@@ -6,7 +6,7 @@
         + Added anime trailer\n
         + Crashfixes\n
     </string>
-    <string name="app_name">Shiro</string>
+    <string name="app_name">Nekomo</string>
     <string name="title_home">Home</string>
     <string name="title_search">Search</string>
     <string name="title_settings">Settings</string>
@@ -26,10 +26,22 @@
     <string name="resultpage1">Download something to make it show up here</string>
     <string name="resultpage2">Downloads unavailable</string>
     <string name="error_connecting_reload">Error Connecting, Reload</string>
-    <string name="acra_report_toast">Sorry, the application crashed. An anonymous bug report will be sent to the
-        developers :)
-    </string>
+    <string name="acra_report_toast">Sorry, the application crashed :(</string>
     <string name="pref_disable_acra">Disable automatic bug reporting</string>
+    <string name="error_log_title">Error log</string>
+    <string name="error_log_copy">Copy</string>
+    <string name="error_log_save">Save</string>
+    <string name="error_log_share">Share</string>
+    <string name="error_log_report_github">Report on GitHub</string>
+    <string name="error_log_clear">Clear</string>
+    <string name="error_log_saved">Saved to Downloads</string>
+    <string name="error_log_save_failed">Failed to save error log</string>
+    <string name="error_log_copied">Copied to clipboard</string>
+    <string name="error_log_cleared">Error log cleared</string>
+    <string name="error_log_clear_confirm_title">Clear error log?</string>
+    <string name="error_log_clear_confirm_message">This will permanently delete the locally stored error log.</string>
+    <string name="error_log_empty">No errors have been logged yet.</string>
+    <string name="dns_provider_disabled">Disabled (system default)</string>
     <string name="downloads">Downloads</string>
     <string name="latest_anime">Latest anime</string>
     <string name="continue_watching">Continue watching</string>

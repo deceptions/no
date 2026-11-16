@@ -4,6 +4,34 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
 >
 
+    <PreferenceCategory android:title="Privacy">
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_screen_lock_landscape_24"
+            android:key="incognito_mode"
+            android:title="Incognito mode"
+            android:summary="While on, Nekomo does not save watch progress, search history or sync progress to AniList/MAL."
+            app:defaultValue="false"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_screen_lock_landscape_24"
+            android:key="adult_lock"
+            android:title="Lock 18+ content with my device lock"
+            android:summary="Asks for your screen lock (PIN, pattern or fingerprint) before 18+ content can be switched on."
+            app:defaultValue="false"
+    />
+    <Preference
+            android:icon="@drawable/ic_baseline_vpn_lock_24"
+            app:key="app_lock"
+            android:title="Lock the app with a PIN"
+            android:summary="Asks for your code every time the app starts"
+    />
+    <Preference
+            android:icon="@drawable/ic_baseline_delete_outline_24"
+            app:key="clear_search_history"
+            android:title="Clear search history"
+    />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="Watch history and data">
     <SwitchPreference
             android:icon="@drawable/ic_baseline_history_24"
             android:key="save_history"
@@ -28,6 +56,13 @@
     />
 
     <Preference
+            android:icon="@drawable/ic_baseline_bug_report_24"
+            app:key="error_log_btt"
+            android:title="Error log"
+            android:summary="View, save or share crashes and errors that happened in the app"
+    />
+
+    <Preference
             android:title="Back up all data"
             app:key="backup_btt"
             android:icon="@drawable/ic_baseline_settings_backup_restore_24"
@@ -38,4 +73,5 @@
             android:icon="@drawable/ic_baseline_settings_backup_restore_24"
     />
 
+    </PreferenceCategory>
 </PreferenceScreen>

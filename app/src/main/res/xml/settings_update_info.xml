@@ -11,7 +11,8 @@
     />
     <SwitchPreference
             app:key="auto_update"
-            android:title="Show app update pop-up"
+            android:title="Check for updates on startup"
+            android:summary="Shows a pop-up when a newer version is available"
             app:defaultValue="true"
             android:icon="@drawable/ic_baseline_system_update_24"
     />
@@ -24,10 +25,18 @@
 
     <SwitchPreference
             app:key="beta_mode"
-            android:title="Beta channel"
-            android:summary="Try new and unstable updates first"
+            android:title="Include pre-releases (stable app)"
+            android:summary="Stable app: also offer pre-releases. The Beta and Alpha apps always follow pre-releases, and only ever update to their own APK."
             app:defaultValue="false"
             android:icon="@drawable/ic_baseline_warning_24"
+    />
+    <EditTextPreference
+            app:key="update_repos"
+            android:title="Update repositories"
+            android:dialogTitle="GitHub repositories (owner/repo, comma separated)"
+            android:defaultValue="Nekomo-App/Nekomo,Nekomo-App/neko-source"
+            app:useSimpleSummaryProvider="true"
+            android:icon="@drawable/ic_github_logo"
     />
     <Preference
             android:title="Check for update"

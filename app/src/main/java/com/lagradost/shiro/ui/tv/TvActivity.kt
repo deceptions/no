@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.tv
+import com.lagradost.shiro.utils.fv
 
 import android.annotation.SuppressLint
 import android.content.Intent
@@ -9,12 +10,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.ViewModelProvider
-import androidx.navigation.fragment.NavHostFragment.findNavController
+import androidx.navigation.findNavController
 import androidx.preference.PreferenceManager
 import com.jaredrummler.cyanea.Cyanea
 import com.jaredrummler.cyanea.app.CyaneaAppCompatActivity
 import com.jaredrummler.cyanea.prefs.CyaneaTheme
 import com.lagradost.shiro.R
+import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
 import com.lagradost.shiro.ui.MainActivity.Companion.masterViewModel
 import com.lagradost.shiro.ui.MainActivity.Companion.navController
 import com.lagradost.shiro.ui.MasterViewModel
@@ -24,9 +26,8 @@ import com.lagradost.shiro.utils.AppUtils.handleIntent
 import com.lagradost.shiro.utils.AppUtils.init
 import com.lagradost.shiro.utils.AppUtils.settingsManager
 import com.lagradost.shiro.utils.InAppUpdater.runAutoUpdate
-import com.lagradost.shiro.utils.ShiroApi.Companion.initShiroApi
-import kotlinx.android.synthetic.main.activity_tv.*
-import kotlinx.android.synthetic.main.fragment_main_tv.*
+import com.lagradost.shiro.utils.NekomoApi.Companion.initShiroApi
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import java.lang.ref.WeakReference
 import kotlin.concurrent.thread
 
@@ -86,11 +87,12 @@ class TvActivity : CyaneaAppCompatActivity() {
         HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.socketFactory)
         */
 
+        installSplashScreen()
         masterViewModel = masterViewModel ?: ViewModelProvider(this).get(MasterViewModel::class.java)
         settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
         init()
         thread {
-            initShiroApi()
+            normalSafeApiCall { initShiroApi() }
         }
         supportActionBar?.hide()
         if (cyanea.isDark) {
@@ -98,9 +100,13 @@ class TvActivity : CyaneaAppCompatActivity() {
         } else {
             theme.applyStyle(R.style.darkText, true)
         }
-        if (!Cyanea.instance.isThemeModified) {
-            val list: List<CyaneaTheme> = CyaneaTheme.Companion.from(assets, "themes/cyanea_themes.json")
-            list[0].apply(Cyanea.instance).recreate(this)
+        val themePrefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        if (!Cyanea.instance.isThemeModified || !themePrefs.getBoolean("nekomo_theme_v2", false)) {
+            normalSafeApiCall {
+                val list: List<CyaneaTheme> = CyaneaTheme.Companion.from(assets, "themes/cyanea_themes.json")
+                themePrefs.edit().putBoolean("nekomo_theme_v2", true).apply()
+                list[0].apply(Cyanea.instance).recreate(this)
+            }
         }
         applyThemes()
         super.onCreate(savedInstanceState)
@@ -113,11 +119,16 @@ class TvActivity : CyaneaAppCompatActivity() {
         // ------ Init -----
         tvActivity = this
         thread {
-            runAutoUpdate()
+            normalSafeApiCall { runAutoUpdate() }
         }
 
         setContentView(R.layout.activity_tv)
-        navController = findNavController(home_root_tv)
+        // The SplashTheme windowBackground (logo + glow) is only meant for launch;
+        // swap it for the plain theme background once content is up.
+        window.setBackgroundDrawable(android.graphics.drawable.ColorDrawable(Cyanea.instance.backgroundColor))
+        normalSafeApiCall { com.lagradost.shiro.ui.welcome.WelcomeGate.attachIfNeeded(this) }
+        normalSafeApiCall { com.lagradost.shiro.ui.welcome.AppLockGate.attachIfNeeded(this) }
+        navController = fv<androidx.fragment.app.FragmentContainerView>(R.id.home_root_tv).findNavController()
         handleIntent(intent)
     }
 
@@ -127,9 +138,9 @@ class TvActivity : CyaneaAppCompatActivity() {
             try {
                 val nextFocused =
                     FocusFinder.getInstance()
-                        .findNextFocus(home_root_tv?.view as? ViewGroup?, currentFocus, View.FOCUS_UP)
+                        .findNextFocus(fv<androidx.fragment.app.FragmentContainerView>(R.id.home_root_tv) as? ViewGroup?, currentFocus, View.FOCUS_UP)
                 nextFocused?.requestFocus()
-                    ?: search_icon?.requestFocus()
+                    ?: fv<android.widget.ImageView>(R.id.search_icon)?.requestFocus()
                     ?: false
             } catch (e: Exception) {
                 return false

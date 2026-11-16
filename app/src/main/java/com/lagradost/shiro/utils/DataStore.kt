@@ -50,7 +50,7 @@ const val LIBRARY_PAGE_MAL_OVERRIDE_SLUG: String = "override_slug_mal"
 
 
 object DataStore {
-    val mapper: JsonMapper = JsonMapper.builder().addModule(KotlinModule())
+    val mapper: JsonMapper = JsonMapper.builder().addModule(KotlinModule.Builder().build())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
 
     private fun getPreferences(context: Context): SharedPreferences {

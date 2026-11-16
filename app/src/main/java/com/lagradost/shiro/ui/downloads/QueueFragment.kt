@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.downloads
+import com.lagradost.shiro.utils.fv
 
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -15,7 +16,6 @@ import com.lagradost.shiro.ui.MainActivity
 import com.lagradost.shiro.ui.MainActivity.Companion.masterViewModel
 import com.lagradost.shiro.ui.result.ResultFragment.Companion.isInResults
 import com.lagradost.shiro.utils.mvvm.observe
-import kotlinx.android.synthetic.main.fragment_queue.*
 
 interface InterfaceRefreshList {
     fun refreshListRequest()
@@ -35,12 +35,12 @@ class QueueFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         val adapter: RecyclerView.Adapter<RecyclerView.ViewHolder> = QueueAdapter()
-        queue_res_view?.adapter = adapter
-        (queue_res_view?.adapter as? QueueAdapter)?.notifyDataSetChanged()
+        fv<androidx.recyclerview.widget.RecyclerView>(R.id.queue_res_view)?.adapter = adapter
+        (fv<androidx.recyclerview.widget.RecyclerView>(R.id.queue_res_view)?.adapter as? QueueAdapter)?.notifyDataSetChanged()
 
-        fragment_queue_root?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<android.widget.LinearLayout>(R.id.fragment_queue_root)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
 
-        download_go_back?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.download_go_back)?.setOnClickListener {
             activity?.onBackPressed()
         }
 
@@ -48,11 +48,11 @@ class QueueFragment : Fragment() {
             LinearLayoutCompat.LayoutParams.MATCH_PARENT, // view width
             MainActivity.statusHeight // view height
         )
-        top_padding_download_queue?.layoutParams = topParams
+        fv<android.view.View>(R.id.top_padding_download_queue)?.layoutParams = topParams
 
         observe(masterViewModel!!.downloadQueue) {
-            (queue_res_view?.adapter as? QueueAdapter)?.updateQueue()
-            (queue_res_view?.adapter as? QueueAdapter)?.notifyDataSetChanged()
+            (fv<androidx.recyclerview.widget.RecyclerView>(R.id.queue_res_view)?.adapter as? QueueAdapter)?.updateQueue()
+            (fv<androidx.recyclerview.widget.RecyclerView>(R.id.queue_res_view)?.adapter as? QueueAdapter)?.notifyDataSetChanged()
         }
 
     }

@@ -12,7 +12,7 @@ import com.lagradost.shiro.R
 import com.lagradost.shiro.utils.AppUtils.popupMenuNoIcons
 import com.lagradost.shiro.utils.Coroutines
 import com.lagradost.shiro.utils.IDisposable
-import com.lagradost.shiro.utils.ShiroApi
+import com.lagradost.shiro.utils.NekomoApi
 import com.lagradost.shiro.utils.VideoDownloadManager
 
 
@@ -32,7 +32,7 @@ data class AllDataWithId(
 //    val anilistID: Int?,
 //    val malID: Int?,
     val fillerEpisodes: HashMap<Int, Boolean>?,
-    val data: ShiroApi.Companion.AnimePageNewData?
+    val data: NekomoApi.Companion.AnimePageNewData?
 
 ) : EasyDownloadButton.IMinimumData
 

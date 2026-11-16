@@ -4,6 +4,13 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
 >
     <SwitchPreference
+            android:icon="@drawable/ic_baseline_open_in_browser_24"
+            app:key="external_player_default"
+            android:title="Open videos in an external player"
+            android:summary="Streams open in VLC, MX Player or another installed player instead of the built-in player. You can also tap External in the player at any time."
+            app:defaultValue="false"
+    />
+    <SwitchPreference
             android:icon="@drawable/ic_baseline_picture_in_picture_alt_24"
             app:key="pip_enabled"
             android:title="Picture-in-picture"
@@ -64,26 +71,55 @@
             android:title="Hide the previous episode button"
             app:defaultValue="false"
     />
-    <!--<SwitchPreference
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_access_time_24"
+            app:key="player_stats"
+            android:title="Playback statistics overlay"
+            android:summary="Shows codec, resolution, buffer and speed on top of the video"
+            app:defaultValue="false"
+    />
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_access_time_24"
+            app:key="subtitle_delay_ms"
+            android:title="Subtitle delay (ms)"
+            android:summary="Positive delays subtitles, negative shows them earlier"
+            android:defaultValue="0"
+            app:min="-10000"
+            android:max="10000"
+            app:seekBarIncrement="250"
+            app:showSeekBarValue="true"
+    />
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_access_time_24"
+            app:key="audio_delay_ms"
+            android:title="Audio delay (ms)"
+            android:summary="Positive delays audio, negative plays it earlier"
+            android:defaultValue="0"
+            app:min="-10000"
+            android:max="10000"
+            app:seekBarIncrement="250"
+            app:showSeekBarValue="true"
+    />
+    <SwitchPreference
             android:icon="@drawable/ic_baseline_fast_forward_24"
             app:key="skip_op_enabled"
             android:title="Skip OP button"
-            app:defaultValue="false"
+            app:defaultValue="true"
     />
     <SwitchPreference
             android:icon="@drawable/ic_baseline_speed_24"
             app:key="playback_speed_enabled"
             android:title="Playback speed button"
             android:summary="Your preferred playback speed will still be used with this disabled"
-            app:defaultValue="false"
+            app:defaultValue="true"
     />
     <SwitchPreference
             android:icon="@drawable/ic_baseline_aspect_ratio_24"
             app:key="player_resize_enabled"
             android:title="Player resize button"
             android:summary="Cursed"
-            app:defaultValue="false"
-    />-->
+            app:defaultValue="true"
+    />
     <MultiSelectListPreference
             app:key="selected_providers"
             android:title="Link loading sources"
@@ -156,6 +192,33 @@
             android:icon="@drawable/ic_baseline_gradient_24"
             app:key="disable_player_shadow"
             android:title="Disable the player overlay shadow"
+            app:defaultValue="false"
+    />
+    <SeekBarPreference
+            android:icon="@drawable/ic_baseline_subtitles_24"
+            android:title="Subtitle size (%)"
+            android:defaultValue="100"
+            android:key="subtitle_size_pct"
+            app:showSeekBarValue="true"
+            app:seekBarIncrement="10"
+            android:max="200"
+            app:min="50"
+    >
+    </SeekBarPreference>
+    <ListPreference
+            android:icon="@drawable/ic_baseline_subtitles_24"
+            app:key="subtitle_color"
+            android:title="Subtitle color"
+            app:entries="@array/SubtitleColors"
+            app:entryValues="@array/SubtitleColorValues"
+            app:defaultValue="white"
+            app:useSimpleSummaryProvider="true"
+    />
+    <SwitchPreference
+            android:icon="@drawable/ic_baseline_subtitles_24"
+            app:key="subtitle_bg"
+            android:title="Subtitle background"
+            android:summary="Draws a translucent box behind subtitles"
             app:defaultValue="false"
     />
 

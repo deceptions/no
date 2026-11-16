@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.home
+import com.lagradost.shiro.utils.fv
 
 import android.view.LayoutInflater
 import android.view.View
@@ -11,8 +12,11 @@ import com.lagradost.shiro.R
 import com.lagradost.shiro.ui.LastEpisodeInfo
 import com.lagradost.shiro.ui.home.HomeFragment.Companion.homeViewModel
 import com.lagradost.shiro.utils.AppUtils.displayCardData
-import com.lagradost.shiro.utils.ShiroApi
-import kotlinx.android.synthetic.main.vertical_grid_view_child.view.*
+import com.lagradost.shiro.utils.NekomoApi
+import com.lagradost.shiro.utils.home.HomeFeed
+import com.lagradost.shiro.utils.home.HomeLayout
+import com.lagradost.shiro.utils.home.SourceKind
+import kotlin.concurrent.thread
 
 
 class MasterCardAdapter(
@@ -23,6 +27,26 @@ class MasterCardAdapter(
     var activity: FragmentActivity? = context
     private var filtered: List<Pair<List<Any?>?, String?>> = generateFiltered()
 
+    // Sections the user enabled in Settings -> Home page, beyond the two fixed rows (trending / recently updated).
+    private fun extraSections() = activity?.let { act ->
+        HomeLayout.active(act).filter {
+            it.source.kind != SourceKind.LOCAL && it.source.kind != SourceKind.OFFICIAL &&
+                    it.def.id != "trending" && it.def.id != "recent"
+        }
+    } ?: emptyList()
+
+    init {
+        val act = activity
+        val pending = extraSections().filter { HomeFeed.cached(it.def.id) == null }
+        if (act != null && pending.isNotEmpty()) thread {
+            pending.forEach { HomeFeed.load(act, it) }
+            act.runOnUiThread {
+                filtered = generateFiltered()
+                notifyDataSetChanged()
+            }
+        }
+    }
+
     private fun generateFiltered(): List<Pair<List<Any?>?, String?>> {
         val data = homeViewModel!!.apiData.value
         return arrayOf(
@@ -30,7 +54,7 @@ class MasterCardAdapter(
             Pair(data?.recentlySeen, activity?.getString(R.string.continue_watching)),
             Pair(homeViewModel!!.favorites.value, activity?.getString(R.string.favorites)),
             Pair(data?.trending?.data?.map {
-                    ShiroApi.CommonAnimePageData(
+                    NekomoApi.CommonAnimePageData(
                         it.title,
                         it.poster,
                         it.slug,
@@ -38,7 +62,7 @@ class MasterCardAdapter(
                     )
                 }, activity?.getString(R.string.trending_anime)),
             Pair(data?.recents?.map {
-                ShiroApi.CommonAnimePageData(
+                NekomoApi.CommonAnimePageData(
                     it.anime.title,
                     it.anime.poster,
                     it.anime.slug,
@@ -46,7 +70,7 @@ class MasterCardAdapter(
             }?.distinctBy { it.slug }, activity?.getString(R.string.home_recently_updated)),
 //            Pair(data?.data?.ongoing_animes, activity?.getString(R.string.home_ongoing)),
 //            Pair(data?.data?.latest_animes, activity?.getString(R.string.latest_anime))
-        ).filter {
+        ).plus(extraSections().map { Pair(HomeFeed.cached(it.def.id), it.def.title) }).filter {
             it.first != null && it.first?.isNotEmpty() == true
         }
     }
@@ -76,7 +100,7 @@ class MasterCardAdapter(
     }
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-        holder.itemView.horizontalGridView?.adapter = null
+        holder.itemView.fv<androidx.leanback.widget.HorizontalGridView>(R.id.horizontalGridView)?.adapter = null
         holder.itemView.visibility = GONE
         super.onViewRecycled(holder)
     }
@@ -90,16 +114,16 @@ class MasterCardAdapter(
         val card: View = itemView
 
         fun bind(pair: Pair<List<Any?>?, String?>, position: Int) {
-            card.expand_text?.text = pair.second
+            card.fv<android.widget.TextView>(R.id.expand_text)?.text = pair.second
             card.visibility = VISIBLE
             val isOnTop = position == 0
             val isFavorite = activity.getString(R.string.favorites) == pair.second
             when {
-                pair.first as? List<ShiroApi.CommonAnimePage?> != null && pair.second != activity.getString(R.string.continue_watching) -> {
+                pair.first as? List<NekomoApi.CommonAnimePage?> != null && pair.second != activity.getString(R.string.continue_watching) -> {
                     activity.displayCardData(
-                        pair.first as List<ShiroApi.CommonAnimePage>?,
-                        card.horizontalGridView,
-                        card.expand_text,
+                        pair.first as List<NekomoApi.CommonAnimePage>?,
+                        card.fv<androidx.leanback.widget.HorizontalGridView>(R.id.horizontalGridView),
+                        card.fv<android.widget.TextView>(R.id.expand_text),
                         isOnTop,
                         overrideHideDubbed = isFavorite
                     )
@@ -107,7 +131,7 @@ class MasterCardAdapter(
                 pair.first as? List<LastEpisodeInfo?> != null -> {
                     activity.displayCardData(
                         pair.first as? List<LastEpisodeInfo>,
-                        card.horizontalGridView,
+                        card.fv<androidx.leanback.widget.HorizontalGridView>(R.id.horizontalGridView),
                         isOnTop
                     )
                 }

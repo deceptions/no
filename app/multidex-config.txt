@@ -1,1 +1,0 @@
-com/google/firebase/provider/FirebaseInitProvider.class

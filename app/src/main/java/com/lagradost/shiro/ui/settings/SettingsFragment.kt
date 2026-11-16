@@ -22,8 +22,8 @@ class SettingsFragment : PreferenceFragmentCompat() {
         var restoreFileSelector: ActivityResultLauncher<String>? = null
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return super.onCreateView(inflater, container, savedInstanceState)?.apply {
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+        return super.onCreateView(inflater, container, savedInstanceState).apply {
             setBackgroundColor(Cyanea.instance.backgroundColor)
         }
     }
@@ -32,7 +32,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.settings, rootKey)
 
         class PreferenceClickListener(val xml: Int) : Preference.OnPreferenceClickListener {
-            override fun onPreferenceClick(preference: Preference?): Boolean {
+            override fun onPreferenceClick(preference: Preference): Boolean {
                 openSettingSubMenu(xml)
                 return true
             }
@@ -75,14 +75,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
     }
 
     override fun onResume() {
-        val settingsManager = PreferenceManager.getDefaultSharedPreferences(activity)
+        val settingsManager = PreferenceManager.getDefaultSharedPreferences(requireContext())
         activity?.changeStatusBarState(settingsManager.getBoolean("statusbar_hidden", true))?.let {
             statusHeight = it
         }
         activity?.requestedOrientation = if (settingsManager.getBoolean("force_landscape", false)) {
             ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
         } else {
-            ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            ActivityInfo.SCREEN_ORIENTATION_USER
         }
         isInSettings = true
         super.onResume()

@@ -4,52 +4,115 @@
         xmlns:app="http://schemas.android.com/apk/res-auto"
 >
     <Preference
-            android:icon="@drawable/ic_baseline_payment_24"
-            android:title="Donate to ********"
-            app:summary="To help fund the site"
-    >
+            android:key="about_version"
+            android:title="Version"
+            android:icon="@drawable/ic_baseline_code_24"
+            android:selectable="false"
+    />
+    <Preference
+            android:key="about_licenses"
+            android:title="Open-source licenses"
+            android:icon="@drawable/ic_baseline_code_24"
+            app:summary="Nekomo is distributed under GPL-3.0; libraries and their licenses"
+    />
+    <Preference android:title="Zangetsu source guide" android:icon="@drawable/ic_baseline_code_24" app:summary="Community guide for finding third-party source repositories (zangetsu.online)">
         <intent android:action="android.intent.action.VIEW"
-                android:data="https://ko-fi.com/shirois"/>
-
+                android:data="https://zangetsu.online/guide/#start"/>
+    </Preference>
+    <Preference android:title="Sources &amp; extensions guide" android:icon="@drawable/ic_baseline_code_24" app:summary="How to add your own repositories, and the 18+ and movies/TV switches">
+        <intent android:action="android.intent.action.VIEW" android:data="https://nekomoapp.netlify.app/sources"/>
+    </Preference>
+    <Preference android:title="Terms of Service" android:icon="@drawable/ic_baseline_code_24" app:summary="Rules for using Nekomo">
+        <intent android:action="android.intent.action.VIEW" android:data="https://nekomoapp.netlify.app/terms"/>
+    </Preference>
+    <Preference android:title="Privacy Policy" android:icon="@drawable/ic_baseline_code_24" app:summary="What stays on your device">
+        <intent android:action="android.intent.action.VIEW" android:data="https://nekomoapp.netlify.app/privacy"/>
+    </Preference>
+    <Preference android:title="Donate" android:icon="@drawable/ic_baseline_code_24" app:summary="Support Nekomo — coming soon">
+        <intent android:action="android.intent.action.VIEW" android:data="https://nekomoapp.netlify.app/donate.html"/>
+    </Preference>
+    <Preference android:title="DMCA / copyright" android:icon="@drawable/ic_baseline_code_24" app:summary="Nekomo hosts no content; report copyright concerns here">
+        <intent android:action="android.intent.action.VIEW" android:data="https://nekomoapp.netlify.app/dmca"/>
+    </Preference>
+    <Preference android:title="Support" android:icon="@drawable/ic_baseline_code_24" app:summary="Get help">
+        <intent android:action="android.intent.action.VIEW" android:data="https://nekomoapp.netlify.app/support"/>
     </Preference>
     <Preference
-            android:icon="@drawable/ic_baseline_payment_24"
-            android:title="Donate to the App developers"
-            app:summary="If you have too much cash"
-            app:isPreferenceVisible="false"
-    >
-        <intent android:action="android.intent.action.VIEW"
-                android:data="https://ko-fi.com/lagradost"/>
-
-    </Preference>
-    <Preference
-            android:title="******** discord"
+            android:title="Nekomo Discord"
             android:icon="@drawable/ic_baseline_discord_24"
-            app:summary="Join the Shiro community"
+            app:summary="Join the Nekomo community"
     >
         <intent android:action="android.intent.action.VIEW"
-                android:data="https://discord.gg/shiro"/>
+                android:data="https://discord.com/invite/E4Ezmgg7Ka"/>
 
     </Preference>
-
     <Preference
-            android:title="Light novel app by the same devs"
+            android:title="Nekomo Telegram"
+            android:icon="@drawable/ic_telegram"
+            app:summary="Announcements and chat"
+    >
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://t.me/nekomoapp"/>
+
+    </Preference>
+    <Preference
+            android:title="GitHub"
+            android:icon="@drawable/ic_github_logo"
+            app:summary="Submit issues and contribute to the app">
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://github.com/Nekomo-App/neko-source"/>
+    </Preference>
+    <Preference
+            android:title="Nekomo project"
+            android:icon="@drawable/ic_github_logo"
+            app:summary="https://github.com/Nekomo-App/Nekomo">
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://github.com/Nekomo-App/Nekomo"/>
+    </Preference>
+    <Preference
+            android:title="Developer"
+            android:icon="@drawable/ic_baseline_code_24"
+            app:summary="marshmeadow — marshmeadow.netlify.app">
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://marshmeadow.netlify.app/"/>
+    </Preference>
+    <Preference
+            android:title="Developer on GitHub"
+            android:icon="@drawable/ic_github_logo"
+            app:summary="https://github.com/MarshMeadow">
+        <intent android:action="android.intent.action.VIEW"
+                android:data="https://github.com/MarshMeadow"/>
+    </Preference>
+    <Preference
+            app:key="about_devin"
+            android:title="AI-assisted development"
+            android:icon="@drawable/ic_baseline_code_24"
+            app:summary="How Devin AI helps build and maintain Nekomo (transparency notice)"
+    />
+    <Preference
+            app:key="about_original"
+            android:title="Nekomo vs the original app"
+            android:icon="@drawable/ic_baseline_code_24"
+            app:summary="How Nekomo compares to the original Shiro/Kuro project"
+    />
+    <Preference
+            android:title="Previous developers"
+            android:icon="@drawable/ic_baseline_code_24"
+            app:summary="Lag (LagradOst) &amp; Blue Fire (Blatzar) — original open-source project"
+    />
+    <Preference
+            android:title="Light novel app by the original devs"
             android:icon="@drawable/quick_novel_icon"
             app:summary="https://github.com/LagradOst/QuickNovel">
         <intent android:action="android.intent.action.VIEW"
                 android:data="https://github.com/LagradOst/QuickNovel"/>
     </Preference>
     <Preference
-            android:title="Anime and Movie app by the same devs"
+            android:title="Anime and Movie app by the original devs"
             android:icon="@drawable/cs3_cloud"
-            app:summary="https://github.com/LagradOst/CloudStream-3">
+            app:summary="https://github.com/recloudstream/cloudstream">
         <intent android:action="android.intent.action.VIEW"
-                android:data="https://github.com/LagradOst/CloudStream-3"/>
+                android:data="https://github.com/recloudstream/cloudstream"/>
     </Preference>
-    <Preference
-            android:title="Developers (to complain to)"
-            android:icon="@drawable/ic_baseline_code_24"
-            app:summary="Lag#5744 &amp; Blue Fire#1471"
-    />
 
 </PreferenceScreen>

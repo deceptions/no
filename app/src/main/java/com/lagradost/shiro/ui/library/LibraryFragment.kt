@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.library
+import com.lagradost.shiro.utils.fv
 
 import ANILIST_SHOULD_UPDATE_LIST
 import ANILIST_TOKEN_KEY
@@ -59,14 +60,6 @@ import com.lagradost.shiro.utils.MALApi.Companion.convertJapanTimeToTimeRemainin
 import com.lagradost.shiro.utils.MALApi.Companion.convertToStatus
 import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
 import com.lagradost.shiro.utils.mvvm.observe
-import kotlinx.android.synthetic.main.bottom_sheet.*
-import kotlinx.android.synthetic.main.fragment_library.*
-import kotlinx.android.synthetic.main.fragment_library.login_overlay
-import kotlinx.android.synthetic.main.fragment_library.result_tabs
-import kotlinx.android.synthetic.main.fragment_library.viewpager
-import kotlinx.android.synthetic.main.fragment_library_tv.*
-import kotlinx.android.synthetic.main.mal_list.*
-import kotlinx.android.synthetic.main.mal_list.view.*
 
 class CustomSearchView(context: Context) : SearchView(context) {
     override fun onActionViewCollapsed() {
@@ -137,7 +130,7 @@ class LibraryFragment : Fragment() {
     }
 
     private fun getCurrentTabCorrected(): Int {
-        return tabs[(result_tabs?.selectedTabPosition ?: 0)].second
+        return tabs[(fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.selectedTabPosition ?: 0)].second
     }
 
     private fun sortCurrentListEventFunction(boolean: Boolean) {
@@ -156,14 +149,14 @@ class LibraryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        result_tabs?.removeAllTabs()
-        result_tabs?.isFocusable = false
+        fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.removeAllTabs()
+        fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.isFocusable = false
 
         /*tabs.forEach {
-            result_tabs?.addTab(result_tabs.newTab().setText(it))
+            fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.addTab(fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs).newTab().setText(it))
         }*/
-        fragment_list_root?.setPadding(0, MainActivity.statusHeight, 0, 0)
-        fragment_list_root_tv?.setPadding(0, MainActivity.statusHeight, 0, 0)
+        fv<androidx.coordinatorlayout.widget.CoordinatorLayout>(R.id.fragment_list_root)?.setPadding(0, MainActivity.statusHeight, 0, 0)
+        fv<android.widget.LinearLayout>(R.id.fragment_list_root_tv)?.setPadding(0, MainActivity.statusHeight, 0, 0)
 
         val hasAniList = guaranteedContext(context).getKey<String>(
             ANILIST_TOKEN_KEY,
@@ -171,13 +164,16 @@ class LibraryFragment : Fragment() {
             null
         ) != null
         val hasMAL = guaranteedContext(context).getKey<String>(MAL_TOKEN_KEY, MAL_ACCOUNT_ID, null) != null
-        login_overlay?.background = ColorDrawable(Cyanea.instance.backgroundColor)
-        login_overlay?.isVisible = !hasAniList && !hasMAL
-        library_toolbar?.navigationIcon = if (hasAniList && hasMAL) ContextCompat.getDrawable(
+        fv<android.widget.LinearLayout>(R.id.login_overlay)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<android.widget.LinearLayout>(R.id.login_overlay)?.isVisible = !hasAniList && !hasMAL
+        fv<android.widget.Button>(R.id.local_library_open)?.setOnClickListener {
+            context?.let { c -> startActivity(android.content.Intent(c, LocalLibraryActivity::class.java)) }
+        }
+        fv<com.google.android.material.appbar.MaterialToolbar>(R.id.library_toolbar)?.navigationIcon = if (hasAniList && hasMAL) ContextCompat.getDrawable(
             guaranteedContext(context),
             R.drawable.ic_baseline_swap_vert_24
         ) else null
-        library_toolbar?.children?.forEach {
+        fv<com.google.android.material.appbar.MaterialToolbar>(R.id.library_toolbar)?.children?.forEach {
             if (it is ImageButton) {
                 it.setOnClickListener {
                     val newIsMal = !(libraryViewModel?.isMal ?: true)
@@ -190,7 +186,7 @@ class LibraryFragment : Fragment() {
         }
 
         val searchView: CustomSearchView? =
-            library_toolbar?.menu?.findItem(R.id.action_search)?.actionView as? CustomSearchView
+            fv<com.google.android.material.appbar.MaterialToolbar>(R.id.library_toolbar)?.menu?.findItem(R.id.action_search)?.actionView as? CustomSearchView
         searchView?.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 libraryViewModel?.sortCurrentList(getCurrentTabCorrected(), SEARCH, query)
@@ -204,12 +200,12 @@ class LibraryFragment : Fragment() {
         })
 
         fun search() {
-            search_library?.editText?.text?.toString()?.let { text ->
+            fv<com.google.android.material.textfield.TextInputLayout>(R.id.search_library)?.editText?.text?.toString()?.let { text ->
                 libraryViewModel?.sortCurrentList(getCurrentTabCorrected(), SEARCH, text)
             }
         }
 
-        search_library?.editText?.setOnEditorActionListener { textView, i, keyEvent ->
+        fv<com.google.android.material.textfield.TextInputLayout>(R.id.search_library)?.editText?.setOnEditorActionListener { textView, i, keyEvent ->
             if (i == EditorInfo.IME_ACTION_SEARCH ||
                 i == EditorInfo.IME_ACTION_DONE
             ) {
@@ -230,9 +226,9 @@ class LibraryFragment : Fragment() {
         fun sort() {
             val bottomSheetDialog = BottomSheetDialog(getCurrentActivity()!!, R.style.AppBottomSheetDialogTheme)
             bottomSheetDialog.setContentView(R.layout.bottom_sheet)
-            bottomSheetDialog.main_text?.text = "Sort by"
+            bottomSheetDialog.fv<android.widget.TextView>(R.id.main_text)?.text = "Sort by"
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                bottomSheetDialog.bottom_sheet_top_bar.backgroundTintList =
+                bottomSheetDialog.fv<androidx.cardview.widget.CardView>(R.id.bottom_sheet_top_bar).backgroundTintList =
                     ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
             }
 
@@ -252,7 +248,7 @@ class LibraryFragment : Fragment() {
             res.setItemChecked(
                 sortingMethods.indexOfFirst { t ->
                     t.id == libraryViewModel?.sortMethods?.getOrNull(
-                        result_tabs?.selectedTabPosition ?: -1
+                        fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.selectedTabPosition ?: -1
                     ) ?: 0
                 },
                 true
@@ -266,8 +262,8 @@ class LibraryFragment : Fragment() {
             // Full expansion for TV
             bottomSheetDialog.setOnShowListener {
                 normalSafeApiCall {
-                    BottomSheetBehavior.from(bottomSheetDialog.bottom_sheet_root.parent as View).peekHeight =
-                        bottomSheetDialog.bottom_sheet_root.height
+                    BottomSheetBehavior.from(bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.bottom_sheet_root).parent as View).peekHeight =
+                        bottomSheetDialog.fv<android.widget.LinearLayout>(R.id.bottom_sheet_root).height
                 }
             }
 
@@ -275,7 +271,7 @@ class LibraryFragment : Fragment() {
         }
 
 
-        library_toolbar?.setOnMenuItemClickListener {
+        fv<com.google.android.material.appbar.MaterialToolbar>(R.id.library_toolbar)?.setOnMenuItemClickListener {
             when (it.itemId) {
                 R.id.action_reload -> {
                     reload()
@@ -293,7 +289,7 @@ class LibraryFragment : Fragment() {
         val focusListener = View.OnFocusChangeListener { v, hasFocus ->
             val transition: Transition = AutoTransition()
             transition.duration = 2000 // DURATION OF ANIMATION IN MS
-            library_menu_bar?.let {
+            fv<android.widget.RelativeLayout>(R.id.library_menu_bar)?.let {
                 TransitionManager.beginDelayedTransition(it, transition)
             }
             val scale = if (hasFocus) 0.7f else 0.5f
@@ -301,21 +297,21 @@ class LibraryFragment : Fragment() {
             v?.scaleY = scale
         }
 
-        reload_icon?.onFocusChangeListener = focusListener
-        reload_icon?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.reload_icon)?.onFocusChangeListener = focusListener
+        fv<android.widget.ImageView>(R.id.reload_icon)?.setOnClickListener {
             reload()
         }
-        sort_icon?.onFocusChangeListener = focusListener
-        sort_icon?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.sort_icon)?.onFocusChangeListener = focusListener
+        fv<android.widget.ImageView>(R.id.sort_icon)?.setOnClickListener {
             sort()
         }
-        search_icon?.onFocusChangeListener = focusListener
-        search_icon?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.search_icon)?.onFocusChangeListener = focusListener
+        fv<android.widget.ImageView>(R.id.search_icon)?.setOnClickListener {
             search()
         }
-        switch_icon?.isVisible = hasAniList && hasMAL
-        switch_icon?.onFocusChangeListener = focusListener
-        switch_icon?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.switch_icon)?.isVisible = hasAniList && hasMAL
+        fv<android.widget.ImageView>(R.id.switch_icon)?.onFocusChangeListener = focusListener
+        fv<android.widget.ImageView>(R.id.switch_icon)?.setOnClickListener {
             val newIsMal = !(libraryViewModel?.isMal ?: true)
             val client = if (newIsMal) "MAL" else "Anilist"
             Toast.makeText(getCurrentContext() ?: requireContext(), "Switched to $client", Toast.LENGTH_SHORT).show()
@@ -324,24 +320,24 @@ class LibraryFragment : Fragment() {
             libraryViewModel?.displayList()
         }
 
-        //viewpager?.adapter = CustomFragmentPagerAdapter() // CustomPagerAdapter(getCurrentActivity()!!)
-        viewpager?.adapter = CustomPagerAdapter {
+        //fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.adapter = CustomFragmentPagerAdapter() // CustomPagerAdapter(getCurrentActivity()!!)
+        fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.adapter = CustomPagerAdapter {
             // For android tv dpad support
             when (it) {
                 View.FOCUS_RIGHT -> {
                     val location = IntArray(2)
                     getCurrentActivity()?.currentFocus?.getLocationOnScreen(location)
 
-                    fragment_list_root_tv.notNull {
-                        val index = result_tabs?.selectedTabPosition?.plus(1) ?: 0
-                        if (index == (result_tabs?.tabCount ?: 0)) return@notNull
+                    fv<android.widget.LinearLayout>(R.id.fragment_list_root_tv).notNull {
+                        val index = fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.selectedTabPosition?.plus(1) ?: 0
+                        if (index == (fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.tabCount ?: 0)) return@notNull
 
                         val x = 1
                         val y = location[1]
-                        library_menu_bar?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                        fv<android.widget.RelativeLayout>(R.id.library_menu_bar)?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
 
-//                        viewpager?.currentItem = index
-                        viewpager?.setCurrentItem(index, false)
+//                        fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.currentItem = index
+                        fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.setCurrentItem(index, false)
 
                         view.postDelayed({
                             run {
@@ -353,27 +349,27 @@ class LibraryFragment : Fragment() {
                                  * 3. Request the background
                                  * */
                                 focusFinder.findNearestTouchable(
-                                    viewpager,
+                                    fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager),
                                     x,
                                     y,
                                     View.FOCUS_UP,
                                     IntArray(2)
                                 )?.requestFocus() ?: focusFinder.findNearestTouchable(
-                                    viewpager,
+                                    fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager),
                                     1,
                                     0,
                                     View.FOCUS_DOWN,
                                     IntArray(2)
-                                )?.requestFocus() ?: library_card_space?.requestFocus()
-                                library_menu_bar?.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+                                )?.requestFocus() ?: fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.requestFocus()
+                                fv<android.widget.RelativeLayout>(R.id.library_menu_bar)?.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
 
                             }
                         }, 200)
                     }
                 }
                 View.FOCUS_LEFT -> {
-                    fragment_list_root_tv.notNull {
-                        val index = result_tabs?.selectedTabPosition?.minus(1) ?: 0
+                    fv<android.widget.LinearLayout>(R.id.fragment_list_root_tv).notNull {
+                        val index = fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.selectedTabPosition?.minus(1) ?: 0
                         if (index == -1) return@notNull
 
                         val location = IntArray(2)
@@ -382,10 +378,10 @@ class LibraryFragment : Fragment() {
                         val x = it.width - 1
                         val y = location[1]
 
-                        library_menu_bar?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                        fv<android.widget.RelativeLayout>(R.id.library_menu_bar)?.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
 
-//                        viewpager?.currentItem = index
-                        viewpager?.setCurrentItem(index, false)
+//                        fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.currentItem = index
+                        fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.setCurrentItem(index, false)
                         /**
                          * 1. Try to go up from current y pos on the right side
                          * 2. Try to go down from right
@@ -396,48 +392,48 @@ class LibraryFragment : Fragment() {
                             run {
                                 val focusFinder = FocusFinder.getInstance()
                                 focusFinder.findNearestTouchable(
-                                    viewpager,
+                                    fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager),
                                     x,
                                     y,
                                     View.FOCUS_UP,
                                     IntArray(2)
                                 )?.requestFocus() ?: focusFinder.findNearestTouchable(
-                                    viewpager,
+                                    fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager),
                                     x,
                                     0,
                                     View.FOCUS_DOWN,
                                     IntArray(2)
                                 )?.requestFocus() ?: focusFinder.findNearestTouchable(
-                                    viewpager,
+                                    fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager),
                                     1,
                                     0,
                                     View.FOCUS_DOWN,
                                     IntArray(2)
                                 )?.requestFocus()
-                                library_card_space?.requestFocus()
-                                library_menu_bar?.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+                                fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.requestFocus()
+                                fv<android.widget.RelativeLayout>(R.id.library_menu_bar)?.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
 
                             }
                         }, 200)
                     }
 
 
-                    //result_tabs?.getTabAt(result_tabs?.selectedTabPosition?.minus(1) ?: 0)?.select()
+                    //fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.getTabAt(fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.selectedTabPosition?.minus(1) ?: 0)?.select()
                 }
             }
         }
 
-        viewpager?.reduceDragSensitivity()
-        viewpager?.adapter?.notifyDataSetChanged()
+        fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.reduceDragSensitivity()
+        fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.adapter?.notifyDataSetChanged()
 
-        //result_tabs?.setupWithViewPager(viewpager)
-        result_tabs?.tabTextColors = ColorStateList.valueOf(getCurrentActivity()!!.getTextColor())
-        result_tabs?.setSelectedTabIndicatorColor(getCurrentActivity()!!.getTextColor())
+        //fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.setupWithViewPager(fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager))
+        fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.tabTextColors = ColorStateList.valueOf(getCurrentActivity()!!.getTextColor())
+        fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.setSelectedTabIndicatorColor(getCurrentActivity()!!.getTextColor())
 
-        if (result_tabs != null) {
+        if (fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs) != null) {
             TabLayoutMediator(
-                result_tabs,
-                viewpager,
+                fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs),
+                fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager),
             ) { tab, position ->
                 tab.view.isFocusable = false
                 tab.text = tabs.getOrNull(position)?.first ?: ""
@@ -445,23 +441,23 @@ class LibraryFragment : Fragment() {
         }
 
 //            tabs.forEach {
-//                result_tabs?.addTab(result_tabs.newTab().setText(it.first))
+//                fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.addTab(fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs).newTab().setText(it.first))
 //            }
 
 
-        library_toolbar?.title = if (libraryViewModel?.isMal == true) "MAL" else "Anilist"
+        fv<com.google.android.material.appbar.MaterialToolbar>(R.id.library_toolbar)?.title = if (libraryViewModel?.isMal == true) "MAL" else "Anilist"
         observe(libraryViewModel!!.currentList)
         { list ->
             for (i in tabs.indices) {
                 val size = list.getOrNull(tabs[i].second)?.size ?: 0
                 main {
-                    result_tabs?.getTabAt(i)?.text = tabs[i].first + " ($size)"
+                    fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.getTabAt(i)?.text = tabs[i].first + " ($size)"
                 }
             }
-            viewpager?.adapter?.notifyDataSetChanged()
-            library_toolbar?.title = if (libraryViewModel?.isMal == true) "MAL" else "Anilist"
+            fv<androidx.viewpager2.widget.ViewPager2>(R.id.viewpager)?.adapter?.notifyDataSetChanged()
+            fv<com.google.android.material.appbar.MaterialToolbar>(R.id.library_toolbar)?.title = if (libraryViewModel?.isMal == true) "MAL" else "Anilist"
         }
-        /*result_tabs?.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+        /*fv<com.google.android.material.tabs.TabLayout>(R.id.result_tabs)?.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
             override fun onTabSelected(tab: TabLayout.Tab?) {
                 val pos = tab?.position
                 if (pos != null) {
@@ -572,25 +568,25 @@ class CustomPagerAdapter(private val hitBorderCallback: (Int) -> Unit) :
         ) spanCountPortrait * 2 else spanCountPortrait
 
         fun bind(position: Int) {
-            itemView.library_card_space?.spanCount = spanCount
-            itemView.library_card_space?.setBorderCallback(hitBorderCallback)
+            itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.spanCount = spanCount
+            itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.setBorderCallback(hitBorderCallback)
 
             if (tvActivity != null) {
-                itemView.library_card_space?.setPadding(0, 5.toPx, 0, 200.toPx)
+                itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.setPadding(0, 5.toPx, 0, 200.toPx)
             }
 
             fun displayList(list: List<LibraryObject>) {
-                if (itemView.library_card_space?.adapter == null) {
-                    itemView.library_card_space?.adapter = LibraryCardAdapter(list)
+                if (itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.adapter == null) {
+                    itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.adapter = LibraryCardAdapter(list)
                 } else {
-                    (itemView.library_card_space?.adapter as? LibraryCardAdapter)?.list = list
-                    itemView.library_card_space?.adapter?.notifyDataSetChanged()
+                    (itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.adapter as? LibraryCardAdapter)?.list = list
+                    itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.adapter?.notifyDataSetChanged()
                 }
             }
 
             libraryViewModel?.currentList?.value?.getOrNull(tabs[position].second)?.let {
                 val list = generateLibraryObject(it)
-                if ((itemView.library_card_space?.adapter as? LibraryCardAdapter)?.list != list) {
+                if ((itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.library_card_space)?.adapter as? LibraryCardAdapter)?.list != list) {
                     displayList(list)
                 }
             }

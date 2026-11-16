@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
           xmlns:tools="http://schemas.android.com/tools"
-          package="com.lagradost.shiro"
           tools:ignore="MissingLeanbackLauncher">
 
     <uses-permission android:name="android.permission.INTERNET"/>
@@ -21,8 +20,7 @@
     <application
             tools:node="merge"
             android:name=".AcraApplication"
-            android:allowBackup="true"
-            android:fullBackupContent="@xml/backup_descriptor"
+            android:allowBackup="false"
             android:icon="@mipmap/ic_launcher"
             android:label="@string/app_name"
             android:roundIcon="@mipmap/ic_launcher_round"
@@ -31,17 +29,15 @@
     >
         <activity
                 android:launchMode="singleTop"
+                android:exported="true"
                 tools:node="merge"
                 android:name=".ui.MainActivity"
+                android:theme="@style/SplashTheme"
                 android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation"
                 android:label="@string/app_name"
                 android:resizeableActivity="true"
                 android:windowSoftInputMode="adjustResize"
                 android:supportsPictureInPicture="true">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-                <category android:name="android.intent.category.LAUNCHER"/>
-            </intent-filter>
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
@@ -70,7 +66,74 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="shiroapp"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="nekomo"/>
+                <data android:scheme="nekomo-play"/>
+            </intent-filter>
         </activity>
+
+        <!-- Launcher disguises (App identity): the launcher entry lives on activity-aliases so the
+             user can swap the visible name/icon at runtime. "default" is the stock identity — never
+             disable all of them or the app loses its launcher tile. -->
+        <activity-alias android:name=".ui.AliasDefault" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="true"
+                android:label="@string/app_name" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasNeko" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="Neko" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasNekoHub" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="NekoHub" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasAnimeNeko" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="AnimeNeko" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasNekoStream" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="Neko Stream" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasNekoClub" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="Neko Club" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasSakura" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="Neko Sakura" android:icon="@mipmap/ic_launcher_sakura">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasWinter" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="Neko Winter" android:icon="@mipmap/ic_launcher_winter">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasSpooky" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="Neko Spooky" android:icon="@mipmap/ic_launcher_spooky">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <activity-alias android:name=".ui.AliasMidnight" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="Neko Midnight" android:icon="@mipmap/ic_launcher_midnight">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
+        <!-- Cat artwork (N3KO box-cat, katakana marks) belongs to the NEX app — no cat-art aliases here. -->
+        <activity-alias android:name=".ui.AliasNekoChan" android:targetActivity=".ui.MainActivity"
+                android:exported="true" android:enabled="false"
+                android:label="Neko-chan" android:icon="@mipmap/ic_launcher" android:roundIcon="@mipmap/ic_launcher_round">
+            <intent-filter><action android:name="android.intent.action.MAIN"/><category android:name="android.intent.category.LAUNCHER"/></intent-filter>
+        </activity-alias>
 
         <!--<activity
                 android:name=".ui.tv.TvActivity"
@@ -112,6 +175,16 @@
 <!--                android:enabled="true"-->
 <!--                android:exported="false">-->
 <!--        </service>-->
+        <receiver
+                android:name=".ui.widget.ContinueWidgetProvider"
+                android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE"/>
+            </intent-filter>
+            <meta-data
+                    android:name="android.appwidget.provider"
+                    android:resource="@xml/widget_continue_info"/>
+        </receiver>
     </application>
 
 </manifest>

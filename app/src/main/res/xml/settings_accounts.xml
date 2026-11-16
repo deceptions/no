@@ -15,6 +15,11 @@
             android:icon="@drawable/mal_logo"
     />
     <Preference
+            android:title="Kitsu account"
+            app:key="kitsu_setting_btt"
+            android:icon="@drawable/ic_baseline_perm_identity_24"
+    />
+    <Preference
             android:title="Donor ID"
             app:key="donor_id"
             app:isPreferenceVisible="false"

@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui
+import com.lagradost.shiro.utils.fv
 
 import DataStore.getKey
 import DataStore.removeKey
@@ -34,7 +35,7 @@ import androidx.transition.ChangeBounds
 import androidx.transition.TransitionManager
 import androidx.work.WorkManager
 import com.fasterxml.jackson.annotation.JsonProperty
-import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.android.material.navigation.NavigationBarView
 import com.jaredrummler.cyanea.Cyanea
 import com.jaredrummler.cyanea.app.CyaneaAppCompatActivity
 import com.jaredrummler.cyanea.prefs.CyaneaTheme
@@ -55,14 +56,15 @@ import com.lagradost.shiro.utils.DownloadManager.checkDownloadsUsingWorker
 import com.lagradost.shiro.utils.DownloadManager.resumeEpisodeUsingWorker
 import com.lagradost.shiro.utils.Event
 import com.lagradost.shiro.utils.InAppUpdater.runAutoUpdate
-import com.lagradost.shiro.utils.ShiroApi
-import com.lagradost.shiro.utils.ShiroApi.Companion.initShiroApi
+import com.lagradost.shiro.utils.NekomoApi
+import com.lagradost.shiro.utils.NekomoApi.Companion.initShiroApi
 import com.lagradost.shiro.utils.VideoDownloadManager
 import com.lagradost.shiro.utils.VideoDownloadManager.KEY_RESUME_PACKAGES
 import com.lagradost.shiro.utils.VideoDownloadManager.currentDownloads
 import com.lagradost.shiro.utils.VideoDownloadManager.maxConcurrentDownloads
+import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
 import com.lagradost.shiro.utils.mvvm.observe
-import kotlinx.android.synthetic.main.activity_main.*
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import java.lang.ref.WeakReference
 import kotlin.concurrent.thread
 
@@ -79,7 +81,7 @@ data class LastEpisodeInfoLegacy(
     @JsonProperty("pos") val pos: Long,
     @JsonProperty("dur") val dur: Long,
     @JsonProperty("seenAt") val seenAt: Long,
-    @JsonProperty("id") val id: ShiroApi.AnimePageData,
+    @JsonProperty("id") val id: NekomoApi.AnimePageData,
 
     // Old, is actually used for slugs
     @JsonProperty("aniListId") val aniListId: String,
@@ -87,7 +89,7 @@ data class LastEpisodeInfoLegacy(
     @JsonProperty("episodeIndex") val episodeIndex: Int,
     @JsonProperty("seasonIndex") val seasonIndex: Int,
     @JsonProperty("isMovie") val isMovie: Boolean,
-    @JsonProperty("episode") val episode: ShiroApi.ShiroEpisodes,
+    @JsonProperty("episode") val episode: NekomoApi.ShiroEpisodes,
     @JsonProperty("coverImage") val coverImage: String,
     @JsonProperty("title") val title: String?,
     @JsonProperty("bannerImage") val bannerImage: String,
@@ -102,7 +104,7 @@ data class LastEpisodeInfo(
     @JsonProperty("pos") val pos: Long,
     @JsonProperty("dur") val dur: Long,
     @JsonProperty("seenAt") val seenAt: Long,
-    @JsonProperty("data") val data: ShiroApi.Companion.AnimePageNewData?,
+    @JsonProperty("data") val data: NekomoApi.Companion.AnimePageNewData?,
 
     // Old, is actually used for slugs
     @JsonProperty("slug") val slug: String,
@@ -110,7 +112,7 @@ data class LastEpisodeInfo(
     @JsonProperty("episodeIndex") val episodeIndex: Int,
     @JsonProperty("seasonIndex") val seasonIndex: Int,
     @JsonProperty("isMovie") val isMovie: Boolean,
-    @JsonProperty("episode") val episode: ShiroApi.Companion.AnimePageNewEpisodes?,
+    @JsonProperty("episode") val episode: NekomoApi.Companion.AnimePageNewEpisodes?,
     @JsonProperty("coverImage") val coverImage: String,
     @JsonProperty("title") val title: String,
     @JsonProperty("bannerImage") val bannerImage: String,
@@ -133,7 +135,7 @@ data class BookmarkedTitle(
     @JsonProperty("image") override val image: String,
     @JsonProperty("slug") override val slug: String,
     @JsonProperty("english") override val english: String?
-) : ShiroApi.CommonAnimePage
+) : NekomoApi.CommonAnimePage
 
 class MainActivity : CyaneaAppCompatActivity() {
     companion object {
@@ -268,11 +270,14 @@ class MainActivity : CyaneaAppCompatActivity() {
 
     @SuppressLint("MissingSuperCall")
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Branded launch screen (SplashTheme windowBackground / Android 12+ system splash);
+        // must run before super.onCreate for the splash->app theme handoff.
+        installSplashScreen()
         activity = this
 
         // used for PlayerData to prevent crashes
         masterViewModel = masterViewModel ?: ViewModelProvider(this).get(MasterViewModel::class.java)
-        val settingsManager = PreferenceManager.getDefaultSharedPreferences(activity)
+        val settingsManager = PreferenceManager.getDefaultSharedPreferences(this)
         init()
         // Hack to make tinting work
         //if (Cyanea.instance.isLight) delegate.localNightMode = AppCompatDelegate.MODE_NIGHT_YES
@@ -303,14 +308,20 @@ class MainActivity : CyaneaAppCompatActivity() {
         } else {
             theme.applyStyle(R.style.darkText, true)
         }
-        if (!Cyanea.instance.isThemeModified) {
-            val list: List<CyaneaTheme> = CyaneaTheme.Companion.from(assets, "themes/cyanea_themes.json")
-            list[0].apply(Cyanea.instance).recreate(this)
+        val themePrefs = androidx.preference.PreferenceManager.getDefaultSharedPreferences(this)
+        if (!Cyanea.instance.isThemeModified || !themePrefs.getBoolean("nekomo_theme_v2", false)) {
+            normalSafeApiCall {
+                val list: List<CyaneaTheme> = CyaneaTheme.Companion.from(assets, "themes/cyanea_themes.json")
+                themePrefs.edit().putBoolean("nekomo_theme_v2", true).apply()
+                list[0].apply(Cyanea.instance).recreate(this)
+            }
         }
 
         // -----------------
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        normalSafeApiCall { com.lagradost.shiro.ui.welcome.WelcomeGate.attachIfNeeded(this) }
+        normalSafeApiCall { com.lagradost.shiro.ui.welcome.AppLockGate.attachIfNeeded(this) }
 
         /*window.setFlags(
             WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
@@ -323,7 +334,7 @@ class MainActivity : CyaneaAppCompatActivity() {
         if (settingsManager.getBoolean("force_landscape", false)) {
             activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
         } else {
-            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+            activity?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER
         }
         /*if (settingsManager.getBoolean("use_external_storage", false)) {
             if (!checkWrite()) {
@@ -333,12 +344,12 @@ class MainActivity : CyaneaAppCompatActivity() {
         }*/
 
         thread {
-            initShiroApi()
+            normalSafeApiCall { initShiroApi() }
         }
         // Hardcoded for now since it fails for some people :|
         isDonor = true //getDonorStatus() == androidId
         thread {
-            runAutoUpdate()
+            normalSafeApiCall { runAutoUpdate() }
         }
         //https://stackoverflow.com/questions/29146757/set-windowtranslucentstatus-true-when-android-lollipop-or-higher
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
@@ -453,7 +464,7 @@ class MainActivity : CyaneaAppCompatActivity() {
             AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         }
     }*/
-        mediaSession = MediaSessionCompat(activity!!, "fastani").apply {
+        mediaSession = MediaSessionCompat(activity!!, "nekomo").apply {
 
             setFlags(
                 MediaSessionCompat.FLAG_HANDLES_MEDIA_BUTTONS or
@@ -475,9 +486,17 @@ class MainActivity : CyaneaAppCompatActivity() {
         mediaSession!!.isActive = true
 
         var startUp = true
-        val navView: BottomNavigationView = findViewById(R.id.nav_view)
+        val navView: NavigationBarView = findViewById(R.id.nav_view)
         navController = findNavController(R.id.nav_host_fragment)
         navView.setupWithNavController(navController!!)
+
+        // "Start on page" setting: jump straight to the chosen tab once the graph is ready.
+        when (settingsManager.getString("startup_page", "home")) {
+            "search" -> R.id.navigation_search
+            "library" -> R.id.navigation_library
+            "downloads" -> R.id.navigation_downloads
+            else -> null
+        }?.let { dest -> navView.post { navController?.navigate(dest) } }
 
         navController!!.addOnDestinationChangedListener { _, destination, _ ->
             navView.hideKeyboard()
@@ -485,12 +504,12 @@ class MainActivity : CyaneaAppCompatActivity() {
                 requestedOrientation = if (settingsManager?.getBoolean("force_landscape", false) == true) {
                     ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
                 } else {
-                    ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+                    ActivityInfo.SCREEN_ORIENTATION_USER
                 }
             }
 
             // Fucks up anime info layout since that has its own layout
-            cast_mini_controller_holder?.isVisible = destination.id != R.id.navigation_results
+            fv<android.widget.LinearLayout>(R.id.cast_mini_controller_holder)?.isVisible = destination.id != R.id.navigation_results
 
             if (listOf(
                     R.id.navigation_home,
@@ -505,7 +524,7 @@ class MainActivity : CyaneaAppCompatActivity() {
                     navView.layoutParams = navView.layoutParams.apply {
                         val transition = ChangeBounds()
                         transition.duration = 100 // DURATION OF ANIMATION IN MS
-                        TransitionManager.beginDelayedTransition(container, transition)
+                        TransitionManager.beginDelayedTransition(fv<androidx.constraintlayout.widget.ConstraintLayout>(R.id.container), transition)
                         (this as ConstraintLayout.LayoutParams).setMargins(0, 0, 0, 0)
                     }
                 }
@@ -514,7 +533,7 @@ class MainActivity : CyaneaAppCompatActivity() {
                 navView.layoutParams = navView.layoutParams.apply {
                     val transition = ChangeBounds()
                     transition.duration = 100 // DURATION OF ANIMATION IN MS
-                    TransitionManager.beginDelayedTransition(container, transition)
+                    TransitionManager.beginDelayedTransition(fv<androidx.constraintlayout.widget.ConstraintLayout>(R.id.container), transition)
                     (this as ConstraintLayout.LayoutParams).setMargins(0, 0, 0, -navView.height)
                 }
             }

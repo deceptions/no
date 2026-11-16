@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.tv
+import com.lagradost.shiro.utils.fv
 
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -14,9 +15,8 @@ import com.lagradost.shiro.ui.tv.TvActivity.Companion.isInSearch
 import com.lagradost.shiro.utils.AppUtils.displayCardData
 import com.lagradost.shiro.utils.AppUtils.filterCardList
 import com.lagradost.shiro.utils.Coroutines.main
-import com.lagradost.shiro.utils.ShiroApi
-import com.lagradost.shiro.utils.ShiroApi.Companion.searchNew
-import kotlinx.android.synthetic.main.fragment_search_tv.*
+import com.lagradost.shiro.utils.NekomoApi
+import com.lagradost.shiro.utils.NekomoApi.Companion.searchNew
 import kotlin.concurrent.thread
 
 class SearchFragmentTv : Fragment() {
@@ -49,7 +49,7 @@ class SearchFragmentTv : Fragment() {
             false
         )
 
-        search_bar.setSearchBarListener(object : SearchBar.SearchBarListener {
+        fv<androidx.leanback.widget.SearchBar>(R.id.search_bar).setSearchBarListener(object : SearchBar.SearchBarListener {
             override fun onSearchQueryChange(query: String?) {
                 if (query == null) return
                 thread {
@@ -57,7 +57,7 @@ class SearchFragmentTv : Fragment() {
                     data?.let { data ->
                         val filteredData =
                             filterCardList(data.map {
-                                ShiroApi.CommonAnimePageData(
+                                NekomoApi.CommonAnimePageData(
                                     it.title,
                                     it.poster,
                                     it.slug,
@@ -65,7 +65,7 @@ class SearchFragmentTv : Fragment() {
                                 )
                             })
                         main {
-                            activity?.displayCardData(filteredData, search_recycler, expand_text, adapter = adapter)
+                            activity?.displayCardData(filteredData, fv<androidx.leanback.widget.HorizontalGridView>(R.id.search_recycler), fv<android.widget.TextView>(R.id.expand_text), adapter = adapter)
                         }
                     }
                 }
@@ -78,7 +78,7 @@ class SearchFragmentTv : Fragment() {
                     data?.let { data ->
                         val filteredData =
                             filterCardList(data.map {
-                                ShiroApi.CommonAnimePageData(
+                                NekomoApi.CommonAnimePageData(
                                     it.title,
                                     it.poster,
                                     it.slug,
@@ -86,7 +86,7 @@ class SearchFragmentTv : Fragment() {
                                 )
                             })
                         main {
-                            activity?.displayCardData(filteredData, search_recycler, expand_text, adapter = adapter)
+                            activity?.displayCardData(filteredData, fv<androidx.leanback.widget.HorizontalGridView>(R.id.search_recycler), fv<android.widget.TextView>(R.id.expand_text), adapter = adapter)
                         }
                     }
                 }

@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.downloads
+import com.lagradost.shiro.utils.fv
 
 import DOWNLOAD_PARENT_KEY
 import DataStore.containsKey
@@ -37,7 +38,6 @@ import com.lagradost.shiro.utils.Coroutines.main
 import com.lagradost.shiro.utils.DownloadManager
 import com.lagradost.shiro.utils.VideoDownloadManager
 import com.lagradost.shiro.utils.VideoDownloadManager.downloadDeleteEvent
-import kotlinx.android.synthetic.main.fragment_download_child.*
 import kotlinx.coroutines.Job
 
 const val SLUG = "slug"
@@ -51,14 +51,14 @@ class DownloadFragmentChild : Fragment() {
         arguments?.getString(SLUG)?.let {
             slug = it
         }
-        download_child_scroll_view.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<android.widget.ScrollView>(R.id.download_child_scroll_view).background = ColorDrawable(Cyanea.instance.backgroundColor)
         val topParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
             LinearLayoutCompat.LayoutParams.MATCH_PARENT, // view width
             MainActivity.statusHeight // view height
         )
-        top_padding_download_child?.layoutParams = topParams
+        fv<android.view.View>(R.id.top_padding_download_child)?.layoutParams = topParams
         PlayerFragment.onPlayerNavigated += ::onPlayerLeft
-        download_go_back?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.download_go_back)?.setOnClickListener {
             activity?.onBackPressed()
         }
         loadData()
@@ -66,7 +66,7 @@ class DownloadFragmentChild : Fragment() {
 
     override fun onDestroy() {
         downloadDeleteEvent -= ::updateAdapter
-        (download_child_res_view?.adapter as? DownloadChildAdapter?)?.killAdapter()
+        (fv<androidx.recyclerview.widget.RecyclerView>(R.id.download_child_res_view)?.adapter as? DownloadChildAdapter?)?.killAdapter()
         super.onDestroy()
         PlayerFragment.onPlayerNavigated -= ::onPlayerLeft
         isInResults = false
@@ -121,7 +121,7 @@ class DownloadFragmentChild : Fragment() {
                     } else {
                         setKey(VIEWSTATE_KEY, key, System.currentTimeMillis())
                     }
-                    download_child_res_view?.adapter?.notifyItemChanged(episodeClick.adapterPosition)
+                    fv<androidx.recyclerview.widget.RecyclerView>(R.id.download_child_res_view)?.adapter?.notifyItemChanged(episodeClick.adapterPosition)
                 }
             }
 
@@ -132,8 +132,8 @@ class DownloadFragmentChild : Fragment() {
     private fun updateAdapter(id: Int) {
         if (sortedEpisodes.any { it.internalId == id }) {
             sortedEpisodes = guaranteedContext(context).getSortedEpisodes(slug).filter { it.internalId != id }
-            (download_child_res_view?.adapter as? DownloadChildAdapter)?.data = sortedEpisodes
-            download_child_res_view?.adapter?.notifyDataSetChanged()
+            (fv<androidx.recyclerview.widget.RecyclerView>(R.id.download_child_res_view)?.adapter as? DownloadChildAdapter)?.data = sortedEpisodes
+            fv<androidx.recyclerview.widget.RecyclerView>(R.id.download_child_res_view)?.adapter?.notifyDataSetChanged()
         }
     }
 
@@ -145,16 +145,16 @@ class DownloadFragmentChild : Fragment() {
 
     @SuppressLint("ClickableViewAccessibility", "SetTextI18n")
     private fun loadData() {
-        downloadRootChild?.removeAllViews()
+        fv<android.widget.LinearLayout>(R.id.downloadRootChild)?.removeAllViews()
 //        val save = settingsManager!!.getBoolean("save_history", true)
         val parent =
             guaranteedContext(context).getKey<DownloadManager.DownloadParentFileMetadata>(DOWNLOAD_PARENT_KEY, slug!!)
-        download_header_text?.text = parent?.title
+        fv<android.widget.TextView>(R.id.download_header_text)?.text = parent?.title
         // Sorts by Seasons and Episode Index
 
         sortedEpisodes = guaranteedContext(context).getSortedEpisodes(slug)
 
-        download_child_res_view?.adapter = parent?.let {
+        fv<androidx.recyclerview.widget.RecyclerView>(R.id.download_child_res_view)?.adapter = parent?.let {
             DownloadChildAdapter(
                 it,
                 sortedEpisodes,
@@ -166,7 +166,7 @@ class DownloadFragmentChild : Fragment() {
                 }
             )
         }
-        download_child_res_view?.adapter?.notifyDataSetChanged()
+        fv<androidx.recyclerview.widget.RecyclerView>(R.id.download_child_res_view)?.adapter?.notifyDataSetChanged()
     }
 
     override fun onCreateView(

@@ -70,6 +70,7 @@ open class SettingsActivity : CyaneaAppCompatActivity() {
         //    if (Cyanea.instance.isLight) AppCompatDelegate.MODE_NIGHT_YES else AppCompatDelegate.MODE_NIGHT_NO
 
         val layout = R.id.activity_settings_root
+        val highlight = intent.getStringExtra(HIGHLIGHT_KEY)
         when (val xml = intent.getIntExtra(XML_KEY, -1)) {
 
             R.xml.custom_pref_cyanea -> {
@@ -77,7 +78,7 @@ open class SettingsActivity : CyaneaAppCompatActivity() {
             }
             -1 -> finish()
             else -> {
-                this.addFragmentOnlyOnce(layout, SubSettingsFragment.newInstance(xml), "SETTINGS")
+                this.addFragmentOnlyOnce(layout, SubSettingsFragment.newInstance(xml, highlight), "SETTINGS")
             }
         }
     }

@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.search
+import com.lagradost.shiro.utils.fv
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -17,6 +18,7 @@ import android.view.View.GONE
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.appcompat.widget.SearchView
 import androidx.core.content.ContextCompat
@@ -33,14 +35,14 @@ import com.lagradost.shiro.ui.MainActivity
 import com.lagradost.shiro.ui.toPx
 import com.lagradost.shiro.utils.AppUtils.changeStatusBarState
 import com.lagradost.shiro.utils.AppUtils.filterCardList
+import com.lagradost.shiro.utils.AppUtils.loadPage
 import com.lagradost.shiro.utils.AppUtils.getCurrentActivity
 import com.lagradost.shiro.utils.AppUtils.guaranteedContext
 import com.lagradost.shiro.utils.AppUtils.observe
 import com.lagradost.shiro.utils.AppUtils.settingsManager
-import com.lagradost.shiro.utils.ShiroApi
-import com.lagradost.shiro.utils.ShiroApi.Companion.getSearchMethods
-import kotlinx.android.synthetic.main.fragment_search.*
-import kotlinx.android.synthetic.main.genres_search.*
+import com.lagradost.shiro.utils.NekomoApi
+import com.lagradost.shiro.utils.NekomoApi.Companion.getSearchMethods
+import com.lagradost.shiro.utils.SearchHistory
 import kotlin.concurrent.thread
 
 class SearchFragment : Fragment() {
@@ -64,6 +66,13 @@ class SearchFragment : Fragment() {
     @SuppressLint("ClickableViewAccessibility")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // The search bar must not grab focus on entry: the keyboard opens only when the user taps it
+        view.isFocusableInTouchMode = true
+        view.requestFocus() // keeps the keyboard closed until the bar is tapped
+        view.post {
+            (activity?.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager)
+                ?.hideSoftInputFromWindow(view.windowToken, 0)
+        }
 //        if (context?.getKey(HAS_DISMISSED_SEARCH_INFO, false) == false) {
 //            val builder: AlertDialog.Builder =
 //                AlertDialog.Builder(getCurrentActivity()!!, R.style.AlertDialogCustom)
@@ -86,34 +95,34 @@ class SearchFragment : Fragment() {
         }*/
 //        val orientation = resources.configuration.orientation
         if (settingsManager!!.getBoolean("force_landscape",false)) {
-            cardSpace?.spanCount = spanCountLandscape
+            fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.spanCount = spanCountLandscape
         } else {
-            cardSpace?.spanCount = spanCountPortrait
+            fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.spanCount = spanCountPortrait
         }
 
         val topParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
             LinearLayoutCompat.LayoutParams.MATCH_PARENT, // view width
             MainActivity.statusHeight // view height
         )
-        top_padding.layoutParams = topParams
+        fv<android.view.View>(R.id.top_padding).layoutParams = topParams
 
-        search_results_layout?.background = ColorDrawable(Cyanea.instance.backgroundColor)
-        main_search?.background = ColorDrawable(Cyanea.instance.backgroundColorDark)
+        fv<android.widget.LinearLayout>(R.id.search_results_layout)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<androidx.appcompat.widget.SearchView>(R.id.main_search)?.background = ColorDrawable(Cyanea.instance.backgroundColorDark)
 
-        progress_bar?.visibility = GONE
+        fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar)?.visibility = GONE
         val adapter: RecyclerView.Adapter<RecyclerView.ViewHolder> =
             ResAdapter(
                 ArrayList(),
-                cardSpace,
+                fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace),
                 false
             )
-        cardSpace?.adapter = adapter
-        search_fab_button.backgroundTintList = ColorStateList.valueOf(
+        fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter = adapter
+        fv<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>(R.id.search_fab_button).backgroundTintList = ColorStateList.valueOf(
             Cyanea.instance.primaryDark
         )
 
         var isGenresOpen = false
-        search_fab_button.setOnClickListener {
+        fv<com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton>(R.id.search_fab_button).setOnClickListener {
             if (isGenresOpen) return@setOnClickListener
             activity?.let { activity ->
                 if (searchViewModel!!.searchOptions.value == null) {
@@ -128,7 +137,7 @@ class SearchFragment : Fragment() {
                 bottomSheetDialog.setContentView(R.layout.genres_search)
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                    bottomSheetDialog.genres_top_bar.backgroundTintList = ColorStateList.valueOf(
+                    bottomSheetDialog.fv<androidx.cardview.widget.CardView>(R.id.genres_top_bar).backgroundTintList = ColorStateList.valueOf(
                         Cyanea.instance.primaryDark
                     )
                 }
@@ -163,66 +172,70 @@ class SearchFragment : Fragment() {
 
         observe(searchViewModel!!.selectedGenres) {
             if (!it.isNullOrEmpty()) {
-                (cardSpace?.adapter as ResAdapter).cardList.clear()
-                progress_bar.visibility = View.VISIBLE
+                (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter).cardList.clear()
+                fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar).visibility = View.VISIBLE
 
                 thread {
-                    val data = ShiroApi.searchNew("", it, hideChinese)
+                    val data = NekomoApi.searchNew("", it, hideChinese)
                     activity?.runOnUiThread {
                         if (data == null) {
                             //Toast.makeText(activity, "Server error", Toast.LENGTH_LONG).show()
-                            progress_bar?.visibility = GONE
+                            fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar)?.visibility = GONE
                         } else {
                             val filteredData =
                                 filterCardList(data.map {
-                                    ShiroApi.CommonAnimePageData(
+                                    NekomoApi.CommonAnimePageData(
                                         it.title,
                                         it.poster,
                                         it.slug,
                                         it.title_english
                                     )
                                 })
-                            progress_bar?.visibility =
+                            fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar)?.visibility =
                                 GONE // GONE for remove space, INVISIBLE for just alpha = 0
-                            (cardSpace?.adapter as ResAdapter?)?.cardList =
-                                filteredData as ArrayList<ShiroApi.CommonAnimePage>
-                            (cardSpace?.adapter as ResAdapter?)?.notifyDataSetChanged()
+                            (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter?)?.cardList =
+                                filteredData as ArrayList<NekomoApi.CommonAnimePage>
+                            (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter?)?.notifyDataSetChanged()
                         }
                     }
                 }
             }
         }
 
-        main_search.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        fv<androidx.appcompat.widget.SearchView>(R.id.main_search).setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 if (query == null) return false
-                progress_bar.visibility = View.VISIBLE
-                (cardSpace?.adapter as ResAdapter).cardList.clear()
+                context?.let { SearchHistory.add(it, query) }
+                refreshHistory()
+                fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar).visibility = View.VISIBLE
+                (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter).cardList.clear()
                 thread {
-                    val data = ShiroApi.searchNew(
+                    val data = NekomoApi.searchNew(
                         query,
                         genres = (searchViewModel?.selectedGenres?.value ?: listOf()),
                         hideChinese
                     )
                     activity?.runOnUiThread {
+                        // A newer search has started: ignore this older answer
+                        if (fv<androidx.appcompat.widget.SearchView>(R.id.main_search)?.query?.toString()?.trim() != query.trim()) return@runOnUiThread
                         if (data == null) {
                             //Toast.makeText(activity, "Server error", Toast.LENGTH_LONG).show()
-                            progress_bar?.visibility = View.GONE
+                            fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar)?.visibility = View.GONE
                         } else {
                             val filteredData =
                                 filterCardList(data.map {
-                                    ShiroApi.CommonAnimePageData(
+                                    NekomoApi.CommonAnimePageData(
                                         it.title,
                                         it.poster,
                                         it.slug,
                                         it.title_english
                                     )
                                 })
-                            progress_bar?.visibility =
+                            fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar)?.visibility =
                                 View.GONE // GONE for remove space, INVISIBLE for just alpha = 0
-                            (cardSpace?.adapter as ResAdapter?)?.cardList =
-                                filteredData as ArrayList<ShiroApi.CommonAnimePage>
-                            (cardSpace?.adapter as ResAdapter?)?.notifyDataSetChanged()
+                            (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter?)?.cardList =
+                                filteredData as ArrayList<NekomoApi.CommonAnimePage>
+                            (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter?)?.notifyDataSetChanged()
                         }
                     }
                 }
@@ -231,28 +244,38 @@ class SearchFragment : Fragment() {
 
             override fun onQueryTextChange(newText: String?): Boolean {
                 if (newText == null) return false
-                (cardSpace?.adapter as ResAdapter).cardList.clear()
+                (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter).cardList.clear()
                 searchViewModel?.searchQuery?.postValue(newText)
+                fv<View>(R.id.search_history_panel)?.visibility = if (newText.isEmpty()) View.VISIBLE else GONE
+                historyHandler.removeCallbacksAndMessages(null)
+                if (newText.length >= 2) historyHandler.postDelayed({
+                    context?.let { SearchHistory.add(it, newText) }
+                }, 1800)
                 if (newText != "") {
-                    progress_bar.visibility = View.VISIBLE
+                    fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar).visibility = View.VISIBLE
                     thread {
+                        // Wait for the user to pause typing so each keystroke does not hit the APIs
+                        Thread.sleep(450)
+                        if (searchViewModel?.searchQuery?.value != newText) return@thread
                         val data =
-                            ShiroApi.searchNew(
+                            NekomoApi.searchNew(
                                 newText,
                                 genres = (searchViewModel?.selectedGenres?.value ?: listOf()),
                                 hideChinese
                             )
                         activity?.runOnUiThread {
+                            // A newer search has started: ignore this older answer
+                            if (fv<androidx.appcompat.widget.SearchView>(R.id.main_search)?.query?.toString() != newText) return@runOnUiThread
                             // Nullable since takes time to get data
                             if (data == null) {
                                 //Toast.makeText(activity, "Server error", Toast.LENGTH_LONG).show()
-                                progress_bar?.visibility = GONE
+                                fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar)?.visibility = GONE
                             } else {
-                                progress_bar?.visibility =
+                                fv<androidx.core.widget.ContentLoadingProgressBar>(R.id.progress_bar)?.visibility =
                                     GONE // GONE for remove space, INVISIBLE for just alpha = 0
                                 val filteredData =
                                     filterCardList(data.map {
-                                        ShiroApi.CommonAnimePageData(
+                                        NekomoApi.CommonAnimePageData(
                                             it.title,
                                             it.poster,
                                             it.slug,
@@ -260,8 +283,8 @@ class SearchFragment : Fragment() {
                                         )
                                     })
                                 filteredData?.let {
-                                    (cardSpace?.adapter as ResAdapter?)?.cardList = ArrayList(it)
-                                    (cardSpace?.adapter as ResAdapter?)?.notifyDataSetChanged()
+                                    (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter?)?.cardList = ArrayList(it)
+                                    (fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.adapter as ResAdapter?)?.notifyDataSetChanged()
                                 }
                             }
                         }
@@ -275,7 +298,7 @@ class SearchFragment : Fragment() {
 //        activity?.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
 
 
-        main_search.setOnQueryTextFocusChangeListener { view, b ->
+        fv<androidx.appcompat.widget.SearchView>(R.id.main_search).setOnQueryTextFocusChangeListener { view, b ->
             val searchParams: LinearLayout.LayoutParams = LinearLayout.LayoutParams(
                 LinearLayoutCompat.LayoutParams.MATCH_PARENT, // view width
                 60.toPx // view height
@@ -307,21 +330,72 @@ class SearchFragment : Fragment() {
             val transition: Transition = ChangeBounds()
             transition.duration = 100 // DURATION OF ANIMATION IN MS
 
-            TransitionManager.beginDelayedTransition(main_search, transition)
+            TransitionManager.beginDelayedTransition(fv<androidx.appcompat.widget.SearchView>(R.id.main_search), transition)
 
             val margins = if (b) 0 else 6.toPx
             searchParams.height -= margins * 2 // TO KEEP
             searchParams.setMargins(margins)
-            main_search?.layoutParams = searchParams
+            fv<androidx.appcompat.widget.SearchView>(R.id.main_search)?.layoutParams = searchParams
         }
 //        if (!isInResults && !isInPlayer) {
-        main_search?.onActionViewExpanded()
+        fv<androidx.appcompat.widget.SearchView>(R.id.main_search)?.onActionViewExpanded()
+        // onActionViewExpanded() focuses the bar and pops the keyboard: give focus back so it opens only on tap
+        fv<androidx.appcompat.widget.SearchView>(R.id.main_search)?.let { sv ->
+            sv.post {
+                sv.clearFocus()
+                (activity?.getSystemService(android.content.Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager)?.hideSoftInputFromWindow(sv.windowToken, 0)
+            }
+        }
+        refreshHistory()
         searchViewModel?.searchQuery?.value?.let {
-            main_search?.setQuery(it, false)
+            fv<androidx.appcompat.widget.SearchView>(R.id.main_search)?.setQuery(it, false)
         }
 //        }
 
-        //main_search.findViewById<EditText>(R.id.search_src_text).requestFocus()
+        //fv<androidx.appcompat.widget.SearchView>(R.id.main_search).findViewById<EditText>(R.id.search_src_text).requestFocus()
+    }
+
+    private val historyHandler = android.os.Handler(android.os.Looper.getMainLooper())
+
+    /** Rebuilds the "Recent searches" chips; the panel only shows while the search box is empty. */
+    private fun refreshHistory() {
+        val ctx = context ?: return
+        val panel = fv<View>(R.id.search_history_panel) ?: return
+        val chips = fv<com.google.android.material.chip.ChipGroup>(R.id.search_history_chips) ?: return
+        val items = SearchHistory.all(ctx)
+        chips.removeAllViews()
+        items.forEach { q ->
+            chips.addView(com.google.android.material.chip.Chip(ctx).apply {
+                text = q
+                isCloseIconVisible = true
+                setOnClickListener { fv<SearchView>(R.id.main_search)?.setQuery(q, true) }
+                setOnCloseIconClickListener { SearchHistory.remove(ctx, q); refreshHistory() }
+            })
+        }
+        fv<View>(R.id.search_history_clear)?.setOnClickListener { SearchHistory.clear(ctx); refreshHistory() }
+        fv<View>(R.id.search_random)?.setOnClickListener {
+            Toast.makeText(ctx, "Picking a random anime…", Toast.LENGTH_SHORT).show()
+            thread {
+                val pick = try {
+                    com.lagradost.shiro.utils.NekomoApi.Companion.getRandom()?.data
+                } catch (t: Throwable) {
+                    null
+                }
+                activity?.runOnUiThread {
+                    if (pick != null) {
+                        activity?.loadPage(pick.slug, pick.title)
+                    } else {
+                        Toast.makeText(ctx, "Could not load a random anime. Try again.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+        val empty = fv<SearchView>(R.id.main_search)?.query?.isEmpty() ?: true
+        // Panel stays up on an empty query so the Random button is always reachable;
+        // only the history label and Clear hide when there is nothing to show.
+        panel.visibility = if (empty) View.VISIBLE else GONE
+        fv<View>(R.id.search_history_title)?.visibility = if (items.isNotEmpty()) View.VISIBLE else GONE
+        fv<View>(R.id.search_history_clear)?.visibility = if (items.isNotEmpty()) View.VISIBLE else GONE
     }
 
     override fun onCreateView(
@@ -377,10 +451,10 @@ class SearchFragment : Fragment() {
     override fun onConfigurationChanged(newConfig: Configuration) {
         super.onConfigurationChanged(newConfig)
         if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            cardSpace?.spanCount = spanCountLandscape
+            fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.spanCount = spanCountLandscape
             //Toast.makeText(activity, "landscape", Toast.LENGTH_SHORT).show();
         } else if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            cardSpace?.spanCount = spanCountPortrait
+            fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.cardSpace)?.spanCount = spanCountPortrait
             //Toast.makeText(activity, "portrait", Toast.LENGTH_SHORT).show();
         }
     }

@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.result
+import com.lagradost.shiro.utils.fv
 
 import DataStore.containsKey
 import VIEWSTATE_KEY
@@ -8,7 +9,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.view.isVisible
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewTreeLifecycleOwner
+import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.common.math.IntMath.mod
@@ -18,12 +19,11 @@ import com.lagradost.shiro.ui.downloads.DownloadClickEvent
 import com.lagradost.shiro.utils.AppUtils.dubbify
 import com.lagradost.shiro.utils.AppUtils.getColorFromAttr
 import com.lagradost.shiro.utils.AppUtils.getViewKey
-import com.lagradost.shiro.utils.ShiroApi
-import kotlinx.android.synthetic.main.episode_expander.view.*
+import com.lagradost.shiro.utils.NekomoApi
 
 class MasterEpisodeAdapter(
     val context: Context,
-    var data: ShiroApi.Companion.AnimePageNewData,
+    var data: NekomoApi.Companion.AnimePageNewData,
     var isFiller: HashMap<Int, Boolean>? = null,
     private val clickCallback: (EpisodeClickEvent) -> Unit,
     private val downloadClickCallback: (DownloadClickEvent) -> Unit,
@@ -64,7 +64,7 @@ class MasterEpisodeAdapter(
     }
 
     override fun onViewRecycled(holder: RecyclerView.ViewHolder) {
-        (holder.itemView.episodes_res_view?.adapter as? EpisodeAdapter?)?.killAdapter()
+        (holder.itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.episodes_res_view)?.adapter as? EpisodeAdapter?)?.killAdapter()
     }
 
     class MasterEpisodeViewHolder(
@@ -82,12 +82,12 @@ class MasterEpisodeAdapter(
         fun bind(
             item: MasterEpisode,
             position: Int,
-            data: ShiroApi.Companion.AnimePageNewData,
+            data: NekomoApi.Companion.AnimePageNewData,
         ) {
             val episodeOffset = if (data.episodes.filter { it.episode == "0" }.isNullOrEmpty()) 0 else -1
 
             //println("BIND $position" + "|" + (fillerList?.size ?: "NULLL"))
-            itemView.cardTitle?.text =
+            itemView.fv<android.widget.TextView>(R.id.cardTitle)?.text =
                 if (item.start + 1 == item.end) "Episode ${item.end + episodeOffset}"
                 else "Episodes ${item.start + 1 + episodeOffset} - ${item.end + episodeOffset}"
 
@@ -102,23 +102,23 @@ class MasterEpisodeAdapter(
                 downloadClickCallback
             )
             val settingsManager = PreferenceManager.getDefaultSharedPreferences(context)
-            itemView.episodes_res_view.spanCount =
+            itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.episodes_res_view).spanCount =
                 (if (settingsManager.getBoolean(
                         "no_episode_thumbnails",
                         false
                     )
                 ) 2 else 1) //* if (tvActivity != null) 2 else 1
-            itemView.episodes_res_view.adapter = adapter
-            (itemView.episodes_res_view.adapter as EpisodeAdapter).notifyDataSetChanged()
-            itemView.card_outline.setOnClickListener {
+            itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.episodes_res_view).adapter = adapter
+            (itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.episodes_res_view).adapter as EpisodeAdapter).notifyDataSetChanged()
+            itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).setOnClickListener {
                 expandCallback.invoke(position)
             }
             //val transition: Transition = ChangeTransform()
             //transition.duration = 3000
             //TransitionManager.beginDelayedTransition(itemView.cardBg, transition)
 
-            itemView.expand_icon.rotation = if (item.visible) 90f else 0f
-            itemView.episodes_res_view?.isVisible = item.visible
+            itemView.fv<android.widget.ImageView>(R.id.expand_icon).rotation = if (item.visible) 90f else 0f
+            itemView.fv<com.lagradost.shiro.ui.AutofitRecyclerView>(R.id.episodes_res_view)?.isVisible = item.visible
 
             var isSeen = false
             for (episode in item.start..item.end) {
@@ -132,41 +132,41 @@ class MasterEpisodeAdapter(
             fun setVisibility(focused: Boolean) {
                 when {
                     focused -> {
-                        itemView.card_outline.setCardBackgroundColor(
+                        itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).setCardBackgroundColor(
                             context.getColorFromAttr(R.attr.white)
                         )
                     }
                     isSeen -> {
-                        itemView.card_outline.setCardBackgroundColor(
+                        itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).setCardBackgroundColor(
                             Cyanea.instance.accentDark
                         )
-                        itemView.card_bg.setCardBackgroundColor(
+                        itemView.fv<androidx.cardview.widget.CardView>(R.id.card_bg).setCardBackgroundColor(
                             Cyanea.instance.backgroundColorDark
                         )
                     }
                     else -> {
-                        itemView.card_outline.setCardBackgroundColor(
+                        itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).setCardBackgroundColor(
                             Cyanea.instance.backgroundColorDark
                         )
-                        itemView.card_bg.setCardBackgroundColor(
+                        itemView.fv<androidx.cardview.widget.CardView>(R.id.card_bg).setCardBackgroundColor(
                             Cyanea.instance.backgroundColor
                         )
                     }
                 }
             }
 
-            ViewTreeLifecycleOwner.get(itemView)?.let {
-                selectedItem.observe(it) {
+            itemView.findViewTreeLifecycleOwner()?.let { owner ->
+                selectedItem.observe(owner) {
                     if (it < position) {
-                        itemView.card_outline.descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                        itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).descendantFocusability = ViewGroup.FOCUS_BLOCK_DESCENDANTS
                     } else {
-                        itemView.card_outline.descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
+                        itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).descendantFocusability = ViewGroup.FOCUS_AFTER_DESCENDANTS
                     }
                 }
             }
 
-            setVisibility(itemView.card_outline.isFocused)
-            itemView.card_outline.setOnFocusChangeListener { view, b ->
+            setVisibility(itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).isFocused)
+            itemView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).setOnFocusChangeListener { view, b ->
                 selectedItem.postValue(position)
                 setVisibility(b)
             }
@@ -177,7 +177,7 @@ class MasterEpisodeAdapter(
 }
 
 fun Context.generateItems(
-    episodes: List<ShiroApi.Companion.AnimePageNewEpisodes>,
+    episodes: List<NekomoApi.Companion.AnimePageNewEpisodes>,
     slug: String
 ): MutableList<MasterEpisodeAdapter.MasterEpisode> {
     val stepSize = 20 //settingsManager!!.getInt("episode_group_size", 50)

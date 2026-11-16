@@ -12,3 +12,13 @@
 /captures
 .externalNativeBuild
 .cxx
+
+# Release signing (local only)
+nekomo-release.jks
+keystore.properties
+
+# Build leftovers (builds belong in /apks)
+/.kotlin/
+/app/build/
+/app/*.apk
+/app/phone/release/

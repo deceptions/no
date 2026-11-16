@@ -65,7 +65,7 @@
                 <ImageView
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        android:src="@drawable/shiro_logo_rounded_color_primary"
+                        android:src="@drawable/nekomo_logo"
                         android:layout_centerVertical="true"
                         android:id="@+id/shiro_logo"
                 >

@@ -70,7 +70,7 @@ abstract class DoubleTapGestureListener(private val ctx: PlayerFragment) :
         return true
     }
 
-    override fun onSingleTapConfirmed(e: MotionEvent?): Boolean {
+    override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
         if (isDoubleTapping) return true
         // When disabled it uses onSingleTapUp instead
         if (ctx.doubleTapEnabled && !ctx.isLocked) {

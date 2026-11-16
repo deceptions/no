@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Official community/legal links (verified live). /support, /terms, /privacy and /dmca must exist on the website. -->
+<resources>
+    <string name="link_discord" translatable="false">https://discord.com/invite/E4Ezmgg7Ka</string>
+    <string name="link_telegram" translatable="false">https://t.me/nekomoapp</string>
+    <string name="link_website" translatable="false">https://nekomoapp.netlify.app</string>
+    <string name="link_support" translatable="false">https://nekomoapp.netlify.app/support</string>
+    <string name="link_terms" translatable="false">https://nekomoapp.netlify.app/terms</string>
+    <string name="link_rules" translatable="false">https://nekomoapp.netlify.app/rules</string>
+    <string name="link_sources_guide" translatable="false">https://nekomoapp.netlify.app/sources</string>
+    <string name="link_dmca" translatable="false">https://nekomoapp.netlify.app/dmca</string>
+    <string name="link_privacy" translatable="false">https://nekomoapp.netlify.app/privacy</string>
+    <string name="link_signup_anilist" translatable="false">https://anilist.co/signup</string>
+    <string name="link_signup_mal" translatable="false">https://myanimelist.net/register.php</string>
+    <string name="link_signup_kitsu" translatable="false">https://kitsu.app/</string>
+</resources>

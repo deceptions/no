@@ -15,7 +15,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.lagradost.shiro.utils.AppUtils.checkWrite
 import com.lagradost.shiro.utils.AppUtils.getViewKey
 import com.lagradost.shiro.utils.AppUtils.requestRW
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFullUrlCdn
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFullUrlCdn
 import kotlin.math.pow
 import kotlin.math.round
 
@@ -50,7 +50,7 @@ object DownloadManager {
     data class DownloadFileMetadataLegacy(
         @JsonProperty("internalId") val internalId: Int, // UNIQUE ID BASED ON aniListId season and index
         @JsonProperty("slug") val slug: String,
-        @JsonProperty("animeData") val animeData: ShiroApi.AnimePageData,
+        @JsonProperty("animeData") val animeData: NekomoApi.AnimePageData,
         @JsonProperty("thumbPath") val thumbPath: String?,
         @JsonProperty("videoTitle") val videoTitle: String,
         @JsonProperty("episodeIndex") val episodeIndex: Int,
@@ -60,7 +60,7 @@ object DownloadManager {
     data class DownloadInfo(
         //val card: FastAniApi.Card?,
         @JsonProperty("episodeIndex") val episodeIndex: Int,
-        @JsonProperty("animeData") val animeData: ShiroApi.Companion.AnimePageNewData,
+        @JsonProperty("animeData") val animeData: NekomoApi.Companion.AnimePageNewData,
         @JsonProperty("anilistID") val anilistID: Int? = null,
         @JsonProperty("malID") val malID: Int? = null,
         @JsonProperty("fillerEpisodes") val fillerEpisodes: HashMap<Int, Boolean>? = null

@@ -1,6 +1,19 @@
 [
   {
-    "theme_name": "Default",
+    "theme_name": "Nekomo",
+    "base_theme": "DARK",
+    "primary": "#7c3aed",
+    "primary_dark": "#4c1d95",
+    "primary_light": "#8b5cf6",
+    "accent": "#a78bfa",
+    "accent_dark": "#7c3aed",
+    "accent_light": "#c4b5fd",
+    "background": "#0d0714",
+    "background_dark": "#150c20",
+    "background_light": "#2a1b3d"
+  },
+  {
+    "theme_name": "Classic red",
     "base_theme": "DARK",
     "primary": "#d01110",
     "primary_dark": "#b00d0c",
@@ -479,5 +492,70 @@
     "background": "#FFFFFFFF",
     "background_dark": "#FFD8D8D8",
     "background_light": "#FFFFFFFF"
+  },
+  {
+    "theme_name": "Nekomo AMOLED",
+    "base_theme": "DARK",
+    "primary": "#7c3aed",
+    "primary_dark": "#4c1d95",
+    "primary_light": "#8b5cf6",
+    "accent": "#a78bfa",
+    "accent_dark": "#7c3aed",
+    "accent_light": "#c4b5fd",
+    "background": "#000000",
+    "background_dark": "#000000",
+    "background_light": "#17171c"
+  },
+  {
+    "theme_name": "AMOLED red",
+    "base_theme": "DARK",
+    "primary": "#d01110",
+    "primary_dark": "#b00d0c",
+    "primary_light": "#ed2c2b",
+    "accent": "#ed2c2b",
+    "accent_dark": "#b00d0c",
+    "accent_light": "#ed2c2b",
+    "background": "#000000",
+    "background_dark": "#000000",
+    "background_light": "#1a1a1a"
+  },
+  {
+    "theme_name": "Midnight",
+    "base_theme": "DARK",
+    "primary": "#3b5bdb",
+    "primary_dark": "#2b439e",
+    "primary_light": "#5c7cfa",
+    "accent": "#748ffc",
+    "accent_dark": "#4c6ef5",
+    "accent_light": "#91a7ff",
+    "background": "#05070f",
+    "background_dark": "#02040a",
+    "background_light": "#141a2e"
+  },
+  {
+    "theme_name": "Nekomo Light",
+    "base_theme": "LIGHT",
+    "primary": "#7c3aed",
+    "primary_dark": "#5b21b6",
+    "primary_light": "#8b5cf6",
+    "accent": "#6d28d9",
+    "accent_dark": "#5b21b6",
+    "accent_light": "#8b5cf6",
+    "background": "#faf7fc",
+    "background_dark": "#ede4f5",
+    "background_light": "#ffffff"
+  },
+  {
+    "theme_name": "Minimal Slate",
+    "base_theme": "DARK",
+    "primary": "#78909c",
+    "primary_dark": "#546e7a",
+    "primary_light": "#a7c0cd",
+    "accent": "#b0bec5",
+    "accent_dark": "#90a4ae",
+    "accent_light": "#cfd8dc",
+    "background": "#101214",
+    "background_dark": "#0a0c0d",
+    "background_light": "#24282b"
   }
 ]

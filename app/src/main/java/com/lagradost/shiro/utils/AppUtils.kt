@@ -72,8 +72,6 @@ import com.google.android.gms.cast.framework.CastContext
 import com.google.android.gms.common.ConnectionResult
 import com.google.android.gms.common.GoogleApiAvailability
 import com.google.android.gms.common.images.WebImage
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
 import com.jaredrummler.cyanea.Cyanea
 import com.jaredrummler.cyanea.app.CyaneaAppCompatActivity
 import com.lagradost.shiro.AcraApplication.Companion.getAppContext
@@ -98,12 +96,12 @@ import com.lagradost.shiro.utils.AniListApi.Companion.authenticateLogin
 import com.lagradost.shiro.utils.AniListApi.Companion.initGetUser
 import com.lagradost.shiro.utils.Coroutines.main
 import com.lagradost.shiro.utils.MALApi.Companion.authenticateMalLogin
-import com.lagradost.shiro.utils.ShiroApi.Companion.getAnimePageNew
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFav
-import com.lagradost.shiro.utils.ShiroApi.Companion.getFullUrlCdn
-import com.lagradost.shiro.utils.ShiroApi.Companion.getSlugFromMalId
-import com.lagradost.shiro.utils.ShiroApi.Companion.getSubbed
-import com.lagradost.shiro.utils.ShiroApi.Companion.requestHome
+import com.lagradost.shiro.utils.NekomoApi.Companion.getAnimePageNew
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFav
+import com.lagradost.shiro.utils.NekomoApi.Companion.getFullUrlCdn
+import com.lagradost.shiro.utils.NekomoApi.Companion.getSlugFromMalId
+import com.lagradost.shiro.utils.NekomoApi.Companion.getSubbed
+import com.lagradost.shiro.utils.NekomoApi.Companion.requestHome
 import com.lagradost.shiro.utils.extractors.Vidstream
 import com.lagradost.shiro.utils.mvvm.logError
 import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
@@ -119,7 +117,7 @@ import kotlin.math.roundToInt
 object AppUtils {
     var settingsManager: SharedPreferences? = null
     var allApi: Vidstream = Vidstream()
-    val mapper: JsonMapper = JsonMapper.builder().addModule(KotlinModule())
+    val mapper: JsonMapper = JsonMapper.builder().addModule(KotlinModule.Builder().build())
         .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false).build()
 
     fun FragmentActivity.init() {
@@ -161,16 +159,25 @@ object AppUtils {
 
 
     fun FragmentActivity.handleIntent(intent: Intent?) {
+        intent?.getStringExtra("open_slug")?.let { slug ->
+            intent.removeExtra("open_slug")
+            loadPage(slug, intent.getStringExtra("open_name") ?: slug)
+        }
         val data: Uri? = intent?.data
 
         if (data != null) {
             val dataString = data.toString()
             if (dataString != "") {
-                if (dataString.contains("shiroapp")) {
+                if (dataString.contains("shiroapp") || dataString.startsWith("nekomo://")) {
                     if (dataString.contains("/anilistlogin")) {
                         authenticateLogin(dataString)
                     } else if (dataString.contains("/mallogin")) {
                         authenticateMalLogin(dataString)
+                    }
+                    // Internal: open a title by MAL id (used by the Kitsu/SIMKL library screens)
+                    else if (dataString.contains("/openmal/")) {
+                        dataString.substringAfter("/openmal/").trim('/').takeIf { it.isNotEmpty() }
+                            ?.let { loadPage(it, it, true) }
                     }
                 }
             }
@@ -202,6 +209,27 @@ object AppUtils {
                                 }
                             }
 
+                        }
+                    }
+                    /** nekomo-play://play?slug=<slug>&ep=<n>&pos=<ms> — shared "watch from here" links
+                     *  (the protocol NEX/Watch Together upgrades to live sync later). */
+                    dataString.startsWith("nekomo-play://") -> {
+                        val slug = data.getQueryParameter("slug")
+                        val num = data.getQueryParameter("ep")?.toIntOrNull()
+                        val pos = data.getQueryParameter("pos")?.toLongOrNull() ?: 0L
+                        if (slug != null) {
+                            if (num != null) {
+                                val page = getAnimePageNew(slug)
+                                main {
+                                    if (page?.data != null && page.data.episodes.size >= num && num > 0) {
+                                        loadPlayer(num - 1, pos, page.data)
+                                    } else {
+                                        loadPage(slug, slug)
+                                    }
+                                }
+                            } else {
+                                main { loadPage(slug, slug) }
+                            }
                         }
                     }
                     /** MAL url */
@@ -301,7 +329,7 @@ object AppUtils {
         return size
     }
 
-    fun Context.castEpisode(links: List<ExtractorLink>, data: ShiroApi.CommonAnimePageData, episodeIndex: Int) {
+    fun Context.castEpisode(links: List<ExtractorLink>, data: NekomoApi.CommonAnimePageData, episodeIndex: Int) {
         val castContext = CastContext.getSharedInstance(this)
         castContext.castOptions
         val key = getViewKey(data.slug, episodeIndex)
@@ -323,12 +351,12 @@ object AppUtils {
             ).build()
         }.toTypedArray()
 
-        val castPlayer = CastPlayer(castContext)
-        castPlayer.loadItems(
+        castContext.sessionManager.currentCastSession?.remoteMediaClient?.queueLoad(
             mediaItems,
             0,
+            REPEAT_MODE_REPEAT_SINGLE,
             getKey(VIEW_POS_KEY, key, 0L)!!,
-            REPEAT_MODE_REPEAT_SINGLE
+            JSONObject()
         )
     }
 
@@ -348,7 +376,7 @@ object AppUtils {
     }
 
     // Guarantee slug is dubbed or not
-    fun ShiroApi.Companion.AnimePageNewData.dubbify(turnDubbed: Boolean): ShiroApi.Companion.AnimePageNewData {
+    fun NekomoApi.Companion.AnimePageNewData.dubbify(turnDubbed: Boolean): NekomoApi.Companion.AnimePageNewData {
         return this.copy(
             anime = this.anime.dubbify(turnDubbed)
         )
@@ -407,7 +435,7 @@ object AppUtils {
     }
 
     // Guarantee slug is dubbed or not
-    fun ShiroApi.Companion.AnimePageNew.dubbify(turnDubbed: Boolean): ShiroApi.Companion.AnimePageNew {
+    fun NekomoApi.Companion.AnimePageNew.dubbify(turnDubbed: Boolean): NekomoApi.Companion.AnimePageNew {
         return copy(
             slug = if (turnDubbed) {
                 slug.removeSuffix("-dub") + "-dub"
@@ -521,7 +549,7 @@ object AppUtils {
             MediaStore.Video.Media.DATA + "=? ", arrayOf(videoFilePath), null
         )
         return if (cursor != null && cursor.moveToFirst()) {
-            val id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID))
+            val id = cursor.getInt(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID))
             cursor.close()
             Uri.withAppendedPath(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, "" + id)
         } else {
@@ -549,7 +577,7 @@ object AppUtils {
                         arrayOf(MediaStore.MediaColumns.DISPLAY_NAME), null, null, null
                     )
                     if (cursor != null && cursor.moveToFirst()) {
-                        val filename = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DISPLAY_NAME))
+                        val filename = cursor.getString(cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DISPLAY_NAME))
                             .replace("/", "")
                         inputStream = ctx.contentResolver.openInputStream(data)
                         if (inputStream == null) return data
@@ -647,7 +675,7 @@ object AppUtils {
         return !isBookmarked
     }
 
-    fun Context.onLongCardClick(card: ShiroApi.CommonAnimePage): Boolean {
+    fun Context.onLongCardClick(card: NekomoApi.CommonAnimePage): Boolean {
         var isBookmarked: Boolean? = null
         val selected =
             if (tvActivity != null && settingsManager?.getBoolean("hold_to_favorite", false) == true) "Toggle Favorite"
@@ -669,52 +697,32 @@ object AppUtils {
     }
 
     // TODO USE THIS IN RESULT_FRAGMENT
-    private fun Context.subscribeToShow(data: ShiroApi.CommonAnimePage/*, isBookmarked: Boolean? = null*/) {
+    private fun Context.subscribeToShow(data: NekomoApi.CommonAnimePage/*, isBookmarked: Boolean? = null*/) {
         // isBookmarked
         val subbedBookmark = getKey<BookmarkedTitle>(SUBSCRIPTIONS_BOOKMARK_KEY, data.slug, null)
         val isSubbedOld = getKey(SUBSCRIPTIONS_KEY, data.slug, false)!!
         val isSubbed = isSubbedOld || subbedBookmark != null
 
         if (isSubbed /*&& !(isBookmarked ?: !isSubbed)*/) {
-            Firebase.messaging.unsubscribeFromTopic(data.slug)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        removeKey(SUBSCRIPTIONS_BOOKMARK_KEY, data.slug)
-                        removeKey(SUBSCRIPTIONS_KEY, data.slug)
-                    }
-                    var msg = "Unsubscribed to ${data.name}"//getString(R.string.msg_subscribed)
-                    if (!task.isSuccessful) {
-                        msg = "Unsubscribing failed :("//getString(R.string.msg_subscribe_failed)
-                    }
-                    thread {
-                        homeViewModel?.subscribed?.postValue(getSubbed())
-                    }
-                    //Log.d(TAG, msg)
-                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-                }
+            removeKey(SUBSCRIPTIONS_BOOKMARK_KEY, data.slug)
+            removeKey(SUBSCRIPTIONS_KEY, data.slug)
+            thread {
+                homeViewModel?.subscribed?.postValue(getSubbed())
+            }
+            Toast.makeText(this, "Unsubscribed to ${data.name}", Toast.LENGTH_SHORT).show()
         } else /*if (!isSubbed && (isBookmarked ?: !isSubbed))*/ {
-            Firebase.messaging.subscribeToTopic(data.slug)
-                .addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        setKey(
-                            SUBSCRIPTIONS_BOOKMARK_KEY, data.slug, BookmarkedTitle(
-                                data.name,
-                                data.image,
-                                data.slug,
-                                data.english
-                            )
-                        )
-                    }
-                    var msg = "Subscribed to ${data.name}"//getString(R.string.msg_subscribed)
-                    if (!task.isSuccessful) {
-                        msg = "Subscription failed :("//getString(R.string.msg_subscribe_failed)
-                    }
-                    thread {
-                        homeViewModel?.subscribed?.postValue(getSubbed())
-                    }
-                    //Log.d(TAG, msg)
-                    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
-                }
+            setKey(
+                SUBSCRIPTIONS_BOOKMARK_KEY, data.slug, BookmarkedTitle(
+                    data.name,
+                    data.image,
+                    data.slug,
+                    data.english
+                )
+            )
+            thread {
+                homeViewModel?.subscribed?.postValue(getSubbed())
+            }
+            Toast.makeText(this, "Subscribed to ${data.name}", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -727,12 +735,15 @@ object AppUtils {
         return Color.argb(alpha, red, green, blue)
     }
 
-    fun filterCardList(cards: List<ShiroApi.CommonAnimePage>?): List<ShiroApi.CommonAnimePage>? {
+    fun filterCardList(cards: List<NekomoApi.CommonAnimePage>?): List<NekomoApi.CommonAnimePage>? {
         return when (settingsManager!!.getString("hide_behavior", "None")) {
             "Hide dubbed" ->
                 cards?.filter { it.slug.endsWith("-dub").not() }
+            // Extension results have no sub/dub split, so never hide them
             "Hide subbed" ->
-                cards?.filter { it.slug.endsWith("-dub") }
+                cards?.filter {
+                    it.slug.endsWith("-dub") || com.lagradost.shiro.utils.isExtensionSlug(it.slug)
+                }
             else ->
                 cards
         }
@@ -829,17 +840,25 @@ object AppUtils {
     }
 
     fun Context.openBrowser(url: String) {
-        if (tvActivity != null) {
-            tvActivity?.addFragmentOnlyOnce(android.R.id.content, WebViewFragment.newInstance(url), "WEB_VIEW")
-        } else {
-            val components = arrayOf(ComponentName(applicationContext, MainActivity::class.java))
-            val intent = Intent(Intent.ACTION_VIEW)
-            intent.data = Uri.parse(url)
+        try {
+            if (tvActivity != null) {
+                tvActivity?.addFragmentOnlyOnce(android.R.id.content, WebViewFragment.newInstance(url), "WEB_VIEW")
+            } else {
+                val components = arrayOf(ComponentName(applicationContext, MainActivity::class.java))
+                val intent = Intent(Intent.ACTION_VIEW)
+                intent.data = Uri.parse(url)
+                if (this !is Activity) intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
 
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
-                startActivity(Intent.createChooser(intent, null).putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, components))
-            else
-                startActivity(intent)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N)
+                    startActivity(Intent.createChooser(intent, null).putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, components).apply {
+                        if (this@openBrowser !is Activity) addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                    })
+                else
+                    startActivity(intent)
+            }
+        } catch (e: Exception) {
+            logError(e)
+            android.widget.Toast.makeText(applicationContext, "No browser available to open $url", android.widget.Toast.LENGTH_LONG).show()
         }
     }
 
@@ -899,7 +918,7 @@ object AppUtils {
         )
     }
 
-    private fun canPlayNextEpisode(card: ShiroApi.Companion.AnimePageNewData, episodeIndex: Int): NextEpisode {
+    private fun canPlayNextEpisode(card: NekomoApi.Companion.AnimePageNewData, episodeIndex: Int): NextEpisode {
         val canNext = card.episodes.size > episodeIndex + 1
 
         return if (canNext) {
@@ -909,7 +928,7 @@ object AppUtils {
         }
     }
 
-    fun Context.getLatestSeenEpisode(data: ShiroApi.Companion.AnimePageNewData): NextEpisode {
+    fun Context.getLatestSeenEpisode(data: NekomoApi.Companion.AnimePageNewData): NextEpisode {
         for (i in (data.episodes.size.minus(1) ?: 0) downTo 0) {
             val firstPos = getViewPosDur(data.anime.slug, i)
             if (firstPos.viewstate) {
@@ -921,7 +940,7 @@ object AppUtils {
 
 
     fun FragmentActivity.displayCardData(
-        data: List<ShiroApi.CommonAnimePage>?,
+        data: List<NekomoApi.CommonAnimePage>?,
         resView: RecyclerView,
         textView: TextView,
         isOnTop: Boolean = false,
@@ -951,7 +970,7 @@ object AppUtils {
                 putString(CARD_LIST, mapper.writeValueAsString(data))
                 putString(TITLE, textView.text.toString())
             }
-            getNavController()?.navigate(
+            getNavController()?.safeNavigate(
                 R.id.action_navigation_home_to_navigation_expanded_home,
                 arguments,
             )
@@ -980,7 +999,7 @@ object AppUtils {
     }
 
 
-    fun Context.getNextEpisode(data: ShiroApi.Companion.AnimePageNewData): NextEpisode {
+    fun Context.getNextEpisode(data: NekomoApi.Companion.AnimePageNewData): NextEpisode {
         // HANDLES THE LOGIC FOR NEXT EPISODE
         var episodeIndex = 0
         var seasonIndex = 0
@@ -1010,6 +1029,7 @@ object AppUtils {
 
 
     fun Context.setViewPosDur(data: PlayerData, pos: Long, dur: Long) {
+        if (com.lagradost.shiro.utils.Privacy.incognito(this)) return
         val key = getViewKey(data)
 
         if (settingsManager?.getBoolean("save_history", true) == true) {
@@ -1018,7 +1038,12 @@ object AppUtils {
             setKey(VIEWSTATE_KEY, key, System.currentTimeMillis())
         }
 
+        if (dur > 0 && pos * 100 / dur > 90 && data.episodeIndex != null) {
+            com.lagradost.shiro.utils.SourcePlayback.onEpisodeWatched(this, data.slug, data.episodeIndex!!)
+        }
+
         if (data.card == null) return
+        if (data.episodeIndex == null || data.seasonIndex == null) return
 
         // HANDLES THE LOGIC FOR NEXT EPISODE
         var episodeIndex = data.episodeIndex!!
@@ -1165,13 +1190,13 @@ object AppUtils {
     }
 
     fun <T> LifecycleOwner.observe(liveData: LiveData<T>, action: (t: T) -> Unit) {
-        liveData.observe(this) { it?.let { t -> action(t) } }
+        liveData.observe(this) { it?.let { t -> try { action(t) } catch (e: Exception) { logError(e) } } }
     }
 
     fun FragmentActivity.loadPlayer(
         episodeIndex: Int,
         startAt: Long,
-        card: ShiroApi.Companion.AnimePageNewData,
+        card: NekomoApi.Companion.AnimePageNewData,
         anilistID: Int? = null,
         malID: Int? = null,
         fillerEpisodes: HashMap<Int, Boolean>? = null
@@ -1199,11 +1224,19 @@ fun loadPlayer(title: String?, url: String, startAt: Long?) {
 }*/
 
     fun FragmentActivity.loadPlayer(data: PlayerData) {
+        // Metadata-only episodes (no stream behind them): send the user to the title page to pick a source
+        if (data.card?.episodes?.getOrNull(data.episodeIndex ?: -1)?.ext == "meta") {
+            runOnUiThread {
+                Toast.makeText(this, "Pick a source for this title first.", Toast.LENGTH_LONG).show()
+                loadPage(data.slug, data.card.anime.title)
+            }
+            return
+        }
         runOnUiThread {
             masterViewModel?.playerData?.value = data
             val destination =
                 if (tvActivity != null) R.id.global_to_navigation_player_tv else R.id.global_to_navigation_player
-            getNavController()?.navigate(
+            getNavController()?.safeNavigate(
                 destination
             )
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE
@@ -1227,7 +1260,7 @@ fun loadPlayer(title: String?, url: String, startAt: Long?) {
 //            }
             val destination =
                 if (tvActivity != null) R.id.global_to_navigation_results_tv else R.id.global_to_navigation_results
-            it.navigate(destination, arguments, null, null)
+            it.safeNavigate(destination, arguments)
         }
     }
 

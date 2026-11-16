@@ -1,4 +1,5 @@
 package com.lagradost.shiro.ui.downloads
+import com.lagradost.shiro.utils.fv
 
 import DOWNLOAD_CHILD_KEY
 import DOWNLOAD_PARENT_KEY
@@ -26,6 +27,7 @@ import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
 import com.fasterxml.jackson.annotation.JsonProperty
 import com.jaredrummler.cyanea.Cyanea
 import com.lagradost.shiro.R
+import com.lagradost.shiro.utils.safeNavigate
 import com.lagradost.shiro.ui.GlideApp
 import com.lagradost.shiro.ui.MainActivity
 import com.lagradost.shiro.ui.MainActivity.Companion.isDonor
@@ -43,8 +45,6 @@ import com.lagradost.shiro.utils.VideoDownloadManager.downloadQueue
 import com.lagradost.shiro.utils.VideoDownloadManager.saveQueue
 import com.lagradost.shiro.utils.mvvm.normalSafeApiCall
 import com.lagradost.shiro.utils.mvvm.observe
-import kotlinx.android.synthetic.main.download_card.view.*
-import kotlinx.android.synthetic.main.fragment_download.*
 import java.io.File
 
 class DownloadFragment : Fragment() {
@@ -60,13 +60,13 @@ class DownloadFragment : Fragment() {
         main {
             childMetadataKeys.clear()
             val childKeys = guaranteedContext(context).getChildren()
-            downloadRoot?.removeAllViews()
+            fv<android.widget.LinearLayout>(R.id.downloadRoot)?.removeAllViews()
             val inflater = activity?.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
             val epData = hashMapOf<String, EpisodesDownloaded>()
             try {
-                downloadCenterText?.text =
+                fv<android.widget.TextView>(R.id.downloadCenterText)?.text =
                     if (isDonor) getString(R.string.resultpage1) else getString(R.string.resultpage2)
-                downloadCenterRoot?.isVisible = childKeys.isEmpty()
+                fv<androidx.constraintlayout.widget.ConstraintLayout>(R.id.downloadCenterRoot)?.isVisible = childKeys.isEmpty()
 
                 childKeys.forEach { k ->
                     val child = guaranteedContext(context).getKey<DownloadManager.DownloadFileMetadata>(k)
@@ -126,12 +126,12 @@ class DownloadFragment : Fragment() {
                         if (epData.containsKey(parent.slug.replace("-dubbed", "-dub"))) {
                             val cardView = inflater.inflate(R.layout.download_card, view?.parent as? ViewGroup, false)
 
-                            cardView.imageView.setOnClickListener {
+                            cardView.fv<android.widget.ImageView>(R.id.imageView).setOnClickListener {
                                 activity?.loadPage(parent.slug.replace("-dubbed", "-dub"), parent.title)
                             }
 
-                            cardView.cardTitle?.text = parent.title
-                            //cardView.imageView.setImageURI(Uri.parse(parent.coverImagePath))
+                            cardView.fv<android.widget.TextView>(R.id.cardTitle)?.text = parent.title
+                            //cardView.fv<android.widget.ImageView>(R.id.imageView).setImageURI(Uri.parse(parent.coverImagePath))
 
                             // Legacy
                             if (parent.coverImagePath.startsWith(getCurrentActivity()!!.filesDir.toString())) {
@@ -139,31 +139,31 @@ class DownloadFragment : Fragment() {
                                     GlideApp.with(it)
                                         .load(Uri.fromFile(File(parent.coverImagePath)))
                                         .transition(DrawableTransitionOptions.withCrossFade(200))
-                                        .into(cardView.imageView)
+                                        .into(cardView.fv<android.widget.ImageView>(R.id.imageView))
                                 }
                             } else {
                                 val glideUrlMain =
-                                    ShiroApi.getFullUrlCdn(parent.coverImagePath)
+                                    NekomoApi.getFullUrlCdn(parent.coverImagePath)
                                 context?.let {
                                     GlideApp.with(it)
                                         .load(glideUrlMain)
                                         .transition(DrawableTransitionOptions.withCrossFade(200))
-                                        .into(cardView.imageView)
+                                        .into(cardView.fv<android.widget.ImageView>(R.id.imageView))
                                 }
                             }
 
                             val childData = epData[parent.slug.replace("-dubbed", "-dub")]!!
                             val megaBytes = DownloadManager.convertBytesToAny(childData.countBytes, 0, 2.0).toInt()
-                            cardView.cardInfo?.text =
+                            cardView.fv<android.widget.TextView>(R.id.cardInfo)?.text =
                                 if (parent.isMovie) "$megaBytes MB" else
                                     "${childData.count} Episode${(if (childData.count == 1) "" else "s")} | $megaBytes MB"
-                            cardView.card_outline?.setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
-                            cardView.card_outline?.setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
-                            cardView.card_outline.setOnClickListener {
+                            cardView.fv<androidx.cardview.widget.CardView>(R.id.card_outline)?.setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
+                            cardView.fv<androidx.cardview.widget.CardView>(R.id.card_outline)?.setCardBackgroundColor(Cyanea.instance.backgroundColorDark)
+                            cardView.fv<androidx.cardview.widget.CardView>(R.id.card_outline).setOnClickListener {
                                 val arguments = Bundle().apply {
                                     putString(SLUG, parent.slug.replace("-dubbed", "-dub"))
                                 }
-                                activity?.getNavController()?.navigate(
+                                activity?.getNavController()?.safeNavigate(
                                     R.id.action_navigation_downloads_to_navigation_download_child, arguments
                                 )
 //                                activity?.addFragmentOnlyOnce(
@@ -184,7 +184,7 @@ class DownloadFragment : Fragment() {
                                     ?.commitAllowingStateLoss()*/
                             }
 
-                            downloadRoot?.addView(cardView)
+                            fv<android.widget.LinearLayout>(R.id.downloadRoot)?.addView(cardView)
                         } else {
                             if (currentDownloads.isEmpty() && downloadQueue.isEmpty()
                             ) {
@@ -214,12 +214,12 @@ class DownloadFragment : Fragment() {
             MainActivity.statusHeight // view height
         )
 
-        download_fragment_background?.background = ColorDrawable(Cyanea.instance.backgroundColor)
+        fv<android.widget.RelativeLayout>(R.id.download_fragment_background)?.background = ColorDrawable(Cyanea.instance.backgroundColor)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            queue_card?.backgroundTintList = ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
+            fv<androidx.cardview.widget.CardView>(R.id.queue_card)?.backgroundTintList = ColorStateList.valueOf(Cyanea.instance.backgroundColorDark)
         }
-        queue_card?.setOnClickListener {
-            activity?.getNavController()?.navigate(
+        fv<androidx.cardview.widget.CardView>(R.id.queue_card)?.setOnClickListener {
+            activity?.getNavController()?.safeNavigate(
                 R.id.action_navigation_downloads_to_navigation_download_queue
             )
 //            activity?.addFragmentOnlyOnce(
@@ -233,7 +233,7 @@ class DownloadFragment : Fragment() {
             val size = downloadQueue.toList().filterNotNull().distinctBy { it.item.ep.id }.size
             val suffix = if (size == 1) "" else "s"
             val pausedStatus = if (masterViewModel?.isQueuePaused?.value != false) "\nPaused" else ""
-            queue_card_text?.text = "Queue (${
+            fv<android.widget.TextView>(R.id.queue_card_text)?.text = "Queue (${
                 size
             } item$suffix) $pausedStatus"
         }
@@ -246,14 +246,14 @@ class DownloadFragment : Fragment() {
         observe(masterViewModel!!.isQueuePaused) {
             setQueueText()
             if (it) {
-                queue_pause_play?.setImageResource(R.drawable.netflix_play)
+                fv<android.widget.ImageView>(R.id.queue_pause_play)?.setImageResource(R.drawable.netflix_play)
             } else {
-                queue_pause_play?.setImageResource(R.drawable.netflix_pause)
+                fv<android.widget.ImageView>(R.id.queue_pause_play)?.setImageResource(R.drawable.netflix_pause)
             }
             context?.let { ctx -> saveQueue(ctx) }
         }
 
-        queue_pause_play?.setOnClickListener {
+        fv<android.widget.ImageView>(R.id.queue_pause_play)?.setOnClickListener {
             // If on data => pause downloads
             if (settingsManager?.getBoolean(
                     "disable_data_downloads",
@@ -266,7 +266,7 @@ class DownloadFragment : Fragment() {
                 masterViewModel?.isQueuePaused?.postValue(masterViewModel?.isQueuePaused?.value?.not() ?: true)
             }
         }
-        top_padding_download.layoutParams = topParams
+        fv<android.view.View>(R.id.top_padding_download).layoutParams = topParams
         updateItems()
     }
 

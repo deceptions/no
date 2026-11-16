@@ -95,6 +95,22 @@
                             android:alpha="0.7"
                     >
                     </ImageView>
+                    <!-- Edge fades so the banner melts into the background (top + bottom) -->
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="60dp"
+                            android:layout_gravity="top"
+                            android:background="@drawable/gradient_top"/>
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="80dp"
+                            android:layout_gravity="top"
+                            android:background="@drawable/gradient_gloss"/>
+                    <View
+                            android:layout_width="match_parent"
+                            android:layout_height="90dp"
+                            android:layout_gravity="bottom"
+                            android:background="@drawable/gradient"/>
                     <ImageView
                             android:id="@+id/banner_play_btt"
                             android:scaleType="centerInside"
@@ -197,7 +213,18 @@
                                                     android:textColor="?attr/textColor"
                                                     android:textStyle="bold"
                                                     android:textSize="17sp"
-                                                    android:layout_marginBottom="10dp"
+                                                    android:layout_marginBottom="4dp"
+                                            >
+                                            </TextView>
+                                            <TextView
+                                                    android:id="@+id/title_rating"
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="wrap_content"
+                                                    android:textColor="?attr/colorAccent"
+                                                    android:textStyle="bold"
+                                                    android:textSize="14sp"
+                                                    android:layout_marginBottom="8dp"
+                                                    android:visibility="gone"
                                             >
                                             </TextView>
                                             <TextView
@@ -249,6 +276,16 @@
                                                     android:textSize="12sp"
                                             >
                                             </TextView>
+                                            <TextView
+                                                    android:id="@+id/title_info"
+                                                    android:layout_width="match_parent"
+                                                    android:layout_height="wrap_content"
+                                                    android:layout_marginTop="10dp"
+                                                    android:textColor="?attr/textColorGrayWhite"
+                                                    android:textSize="12sp"
+                                                    android:lineSpacingExtra="4dp"
+                                            >
+                                            </TextView>
                                         </LinearLayout>
 
                                     </LinearLayout>
@@ -263,6 +300,66 @@
                                     >
 
                                     </com.google.android.material.textview.MaterialTextView>
+                                    <TextView
+                                            android:id="@+id/trailer_btt"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginStart="10dp"
+                                            android:layout_marginEnd="10dp"
+                                            android:layout_marginBottom="10dp"
+                                            android:padding="12dp"
+                                            android:gravity="center"
+                                            android:background="@drawable/outline_background"
+                                            android:text="▶  Watch trailer"
+                                            android:textColor="?attr/textColor"
+                                            android:textStyle="bold"
+                                            android:textSize="14sp"
+                                            android:visibility="gone"
+                                            android:clickable="true"
+                                            android:focusable="true"
+                                    />
+                                    <TextView
+                                            android:id="@+id/source_hint"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginStart="10dp"
+                                            android:layout_marginEnd="10dp"
+                                            android:layout_marginBottom="10dp"
+                                            android:padding="12dp"
+                                            android:background="@drawable/outline_background"
+                                            android:text="No episodes yet. Tap here (or the cloud icon) to find this title in the sources you installed."
+                                            android:textColor="?attr/textColor"
+                                            android:textSize="13sp"
+                                            android:visibility="gone"
+                                            android:clickable="true"
+                                            android:focusable="true"
+                                    />
+                                    <LinearLayout
+                                            android:id="@+id/source_row"
+                                            android:layout_width="match_parent"
+                                            android:layout_height="wrap_content"
+                                            android:layout_marginStart="10dp"
+                                            android:layout_marginEnd="10dp"
+                                            android:layout_marginBottom="10dp"
+                                            android:gravity="center_vertical"
+                                            android:orientation="horizontal"
+                                            android:visibility="gone">
+
+                                        <TextView
+                                                android:layout_width="wrap_content"
+                                                android:layout_height="wrap_content"
+                                                android:text="Source"
+                                                android:textColor="?attr/textColorGrayWhite"
+                                                android:textSize="13sp"
+                                                android:paddingEnd="12dp"/>
+
+                                        <Spinner
+                                                android:id="@+id/source_spinner"
+                                                android:layout_width="0dp"
+                                                android:layout_height="wrap_content"
+                                                android:layout_weight="1"
+                                                android:minHeight="44dp"/>
+                                    </LinearLayout>
                                 </LinearLayout>
 
                             </androidx.cardview.widget.CardView>
@@ -314,11 +411,15 @@
             <FrameLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
+                    android:elevation="200dp"
+                    android:translationZ="200dp"
             >
                 <FrameLayout
                         android:background="?attr/backgroundColor"
                         tools:visibility="gone"
                         android:id="@+id/loading_overlay"
+                        android:elevation="200dp"
+                        android:translationZ="200dp"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                 >
@@ -334,6 +435,47 @@
                                 android:id="@+id/main_load"
                         >
                         </ProgressBar>
+                        <TextView
+                                android:id="@+id/loading_title"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:paddingStart="32dp"
+                                android:paddingEnd="32dp"
+                                android:gravity="center"
+                                android:maxLines="2"
+                                android:textColor="?attr/textColor"
+                                android:textSize="17sp"
+                                android:textStyle="bold"/>
+                        <TextView
+                                android:id="@+id/loading_status"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="8dp"
+                                android:paddingStart="32dp"
+                                android:paddingEnd="32dp"
+                                android:gravity="center"
+                                android:textColor="?attr/textColorGrayWhite"
+                                android:textSize="13sp"/>
+                        <LinearLayout
+                                android:id="@+id/loading_actions"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="20dp"
+                                android:orientation="horizontal"
+                                android:visibility="gone">
+                            <Button
+                                    android:id="@+id/loading_retry"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginEnd="12dp"
+                                    android:text="Try again"/>
+                            <Button
+                                    android:id="@+id/loading_back"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Go back"/>
+                        </LinearLayout>
                         <Button
                                 android:visibility="gone"
                                 android:text="Open website"
@@ -413,6 +555,21 @@
                     android:background="@drawable/video_tap_button"
                     app:srcCompat="@drawable/arrow_back"
                     android:layout_gravity="center"
+            />
+
+            <ImageView
+                    android:id="@+id/source_btt"
+                    android:layout_width="50dp"
+                    android:layout_height="50dp"
+                    android:padding="10dp"
+                    android:elevation="10dp"
+                    android:focusable="true"
+                    android:clickable="true"
+                    android:layout_toStartOf="@+id/media_route_button"
+                    android:background="@drawable/video_tap_button"
+                    android:src="@drawable/cs3_cloud"
+                    android:layout_gravity="center"
+                    android:contentDescription="Choose source"
             />
 
             <androidx.mediarouter.app.MediaRouteButton

@@ -137,6 +137,21 @@
         <item name="textAllCaps">false</item>
     </style>
 
+    <style name="SettingsHeader">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">6dp</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.08</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">?attr/colorPrimary</item>
+    </style>
+
     <style name="SettingsItem">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">50sp</item>
@@ -144,6 +159,8 @@
         <item name="android:paddingStart">20dp</item>
         <item name="android:paddingEnd">20dp</item>
         <item name="android:selectAllOnFocus">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:clickable">true</item>
         <item name="android:background">@drawable/outline_background</item>
         <item name="android:textColor">?attr/textColor</item>
         <item name="android:foreground">?attr/selectableItemBackgroundBorderless</item>
@@ -152,6 +169,8 @@
     </style>
 
     <style name="AlertDialogCustom" parent="Theme.AppCompat.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_rounded_bg</item>
+        <item name="android:windowAnimationStyle">@style/DialogAnimationCustom</item>
         <!--<item name="android:background">?attr/background</item>-->
         <item name="white">?attr/white</item>
         <item name="android:textColor">?attr/textColor</item>
@@ -207,6 +226,12 @@
         <item name="android:textColor">?attr/textColor</item>
     </style>
 
+    <!-- Launcher theme: windowBackground shows the branded splash while the app starts;
+         MainActivity replaces the window background with the theme color once it is up. -->
+    <style name="SplashTheme" parent="AppTheme">
+        <item name="android:windowBackground">@drawable/splash_screen</item>
+    </style>
+
     <style name="Theme.LeanbackCustom" parent="Theme.Leanback">
         <item name="preferenceTheme">@style/CustomPreferenceTheme</item>
         <item name="defaultBrandColor">?attr/colorPrimary</item>
@@ -218,6 +243,11 @@
     <style name="WindowAnimationTransition">
         <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+    </style>
+
+    <style name="DialogAnimationCustom">
+        <item name="android:windowEnterAnimation">@anim/pop_enter</item>
+        <item name="android:windowExitAnimation">@anim/pop_exit</item>
     </style>
 
     <style name="CustomPreferenceTheme">
@@ -314,6 +344,7 @@
     </style>
 
     <style name="preferenceActivityTheme">
+        <item name="android:fontFamily">@font/poppins_regular</item>
         <item name="android:textColor">?attr/textColor</item>
         <item name="android:tint">?attr/colorAccent</item>
     </style>

@@ -55,7 +55,7 @@
                     android:layout_height="wrap_content"
                     android:textSize="30sp"
                     android:id="@+id/name_text"
-                    tools:text="Shiro"
+                    tools:text="Nekomo"
                     android:textStyle="bold"
                     android:text="Not logged in"
                     tools:visibility="visible"
@@ -65,7 +65,47 @@
         </LinearLayout>
         <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+            <androidx.cardview.widget.CardView
+                    android:id="@+id/settings_search_card"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="20dp"
+                    android:layout_marginEnd="20dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_gravity="center"
+                    app:cardCornerRadius="@dimen/card_corner_radius"
+                    app:cardElevation="10dp"
+                    app:cardBackgroundColor="?attr/backgroundColorDark"
+            >
+                <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                >
+                    <EditText
+                            android:id="@+id/settings_search"
+                            android:layout_width="match_parent"
+                            android:layout_height="50dp"
+                            android:paddingStart="20dp"
+                            android:paddingEnd="20dp"
+                            android:hint="Search settings"
+                            android:singleLine="true"
+                            android:imeOptions="actionSearch"
+                            android:background="@android:color/transparent"
+                            android:textColorHint="?attr/textColor"
+                    />
+                    <LinearLayout
+                            android:id="@+id/settings_search_results"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:visibility="gone"
+                    />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
             <androidx.cardview.widget.CardView
                     android:id="@+id/settings_card_view"
@@ -82,7 +122,48 @@
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
                 >
-                    <!-- Decided on manual textViews because the listview was fucking up -->
+                    <TextView
+                            android:text="Account"
+                            style="@style/SettingsHeader"/>
+                    <TextView
+                            android:id="@+id/settings_accounts"
+                            android:text="Accounts"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <View style="@style/Divider"/>
+                    <TextView
+                            android:id="@+id/settings_integrations"
+                            android:text="Integrations"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <TextView
+                            android:text="Browse and sources"
+                            style="@style/SettingsHeader"/>
+                    <TextView
+                            android:id="@+id/settings_home"
+                            android:text="Home page"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <View style="@style/Divider"/>
+                    <TextView
+                            android:id="@+id/settings_extensions"
+                            android:text="Extensions"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <View style="@style/Divider"/>
+                    <TextView
+                            android:id="@+id/settings_manga"
+                            android:text="Manga"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <TextView
+                            android:text="App"
+                            style="@style/SettingsHeader"/>
                     <TextView
                             android:id="@+id/settings_general"
                             android:text="General"
@@ -93,7 +174,21 @@
                     <View style="@style/Divider"/>
                     <TextView
                             android:id="@+id/settings_style"
-                            android:text="Style"
+                            android:text="Appearance"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <View style="@style/Divider"/>
+                    <TextView
+                            android:id="@+id/settings_identity"
+                            android:text="App name and icon"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <View style="@style/Divider"/>
+                    <TextView
+                            android:id="@+id/settings_capture"
+                            android:text="Screen capture"
                             style="@style/SettingsItem"
                     >
                     </TextView>
@@ -105,21 +200,18 @@
 
                     >
                     </TextView>
-                    <View style="@style/Divider"/>
                     <TextView
-                            android:id="@+id/settings_accounts"
-                            android:text="Accounts"
-                            style="@style/SettingsItem"
-                    >
-                    </TextView>
-                    <View style="@style/Divider"/>
+                            android:text="Privacy and data"
+                            style="@style/SettingsHeader"/>
                     <TextView
                             android:id="@+id/settings_history"
-                            android:text="History"
+                            android:text="History and privacy"
                             style="@style/SettingsItem"
                     >
                     </TextView>
-                    <View style="@style/Divider"/>
+                    <TextView
+                            android:text="About"
+                            style="@style/SettingsHeader"/>
                     <TextView
                             android:id="@+id/settings_updates"
                             android:text="Updates"
@@ -127,7 +219,20 @@
                     >
                     </TextView>
                     <View style="@style/Divider"/>
-
+                    <TextView
+                            android:id="@+id/settings_community_rules"
+                            android:text="Rules"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <View style="@style/Divider"/>
+                    <TextView
+                            android:id="@+id/settings_dmca"
+                            android:text="DMCA notice"
+                            style="@style/SettingsItem"
+                    >
+                    </TextView>
+                    <View style="@style/Divider"/>
                     <TextView
                             android:id="@+id/settings_about"
                             android:text="About"
